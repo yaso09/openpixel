@@ -1,10 +1,74 @@
 # OpenPixel
 
-OpenPixel is a toolkit for creating and rendering pixel art images and animations. It includes a TypeScript SVG renderer, Rust CLI, and Rust MCP server.
+OpenPixel is a toolkit for creating, editing, and rendering pixel art images and animations. Assets are JSON documents made from ordered pixel-matrix layers and frames. The TypeScript package renders those assets as crisp SVG in browsers; the Rust CLI and MCP server create and edit compatible assets.
+
+## Packages
+
+- [`@openpixel/renderer`](packages/pixelart/README.md): TypeScript types, validation, SVG frame rendering, and browser animation player.
+- [`openpixel`](apps/cli/README.md): Rust command-line asset authoring and SVG export.
+- [`openpixel-mcp`](apps/mcp/README.md): Rust MCP server over stdio and Streamable HTTP/SSE.
+
+## Install the renderer
+
+After publishing, install it in an application with:
+
+```sh
+npm install @openpixel/renderer
+```
+
+For repository development, use npm workspaces:
+
+```sh
+npm install
+npm run build
+```
+
+The Rust applications build independently from the repository root with Cargo:
+
+```sh
+cargo build --release --workspace
+```
+
+## Render an SVG frame
+
+```ts
+import { renderToSvg, type PixelArtDocument } from "@openpixel/renderer";
+
+const asset: PixelArtDocument = {
+  version: 1,
+  name: "One pixel",
+  width: 1,
+  height: 1,
+  layers: [{ id: "ink", name: "Ink" }],
+  frames: [{
+    durationMs: 100,
+    layers: [{ layerId: "ink", pixels: [["#F04438"]] }]
+  }]
+};
+
+document.querySelector("#art")!.innerHTML = renderToSvg(asset, {
+  pixelSize: 16,
+  title: "A red pixel"
+});
+```
+
+`mountPixelArt(element, asset)` adds browser playback with `play()`, `pause()`, `seek(frameIndex)`, and `dispose()`. The renderer API and JSON format are described in [packages/pixelart/README.md](packages/pixelart/README.md) and [the v1 schema](schemas/pixel-art.v1.schema.json).
+
+## Create an asset with the CLI
+
+```sh
+openpixel new art/creature.json --width 16 --height 16 --name Creature --layers body:Body,details:Details
+openpixel set-pixel art/creature.json --output art/creature-painted.json --frame 0 --layer body --x 7 --y 6 --color '#E96B55'
+openpixel render art/creature-painted.json --scale 8 --output out/creature.svg
+```
 
 ## Project status
 
-The v1 JSON format, TypeScript renderer, Rust CLI, and MCP server are in place. See the [roadmap](docs/ROADMAP.md), [phase reports](docs/phases/), [renderer package](packages/pixelart/README.md), [CLI guide](apps/cli/README.md), and [MCP guide](apps/mcp/README.md).
+OpenPixel is in active development. See the [roadmap](docs/ROADMAP.md) and [phase reports](docs/phases/).
+
+## Contributing
+
+People and AI-assisted contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before making changes.
 
 ## License
 

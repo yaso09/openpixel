@@ -1,13 +1,53 @@
 {
   "name": "@openpixel/renderer",
   "version": "0.1.0",
-  "description": "TypeScript SVG renderer and animation player for OpenPixel assets",
+  "description": "TypeScript SVG renderer and browser animation player for OpenPixel assets",
+  "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist", "README.md"],
-  "scripts": { "build": "tsc -p tsconfig.json" },
-  "license": "MIT",
-  "devDependencies": { "typescript": "^5.7.3" }
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": "./schemas/pixel-art.v1.schema.json"
+  },
+  "files": [
+    "dist",
+    "schemas/pixel-art.v1.schema.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yaso09/openpixel.git",
+    "directory": "packages/pixelart"
+  },
+  "homepage": "https://github.com/yaso09/openpixel/tree/master/packages/pixelart",
+  "bugs": {
+    "url": "https://github.com/yaso09/openpixel/issues"
+  },
+  "keywords": [
+    "pixel-art",
+    "svg",
+    "animation",
+    "typescript",
+    "renderer"
+  ],
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
 }

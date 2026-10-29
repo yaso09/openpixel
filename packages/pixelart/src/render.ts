@@ -8,7 +8,7 @@ export function renderFrameToSvg(document: PixelArtDocument, options: RenderOpti
   const frameIndex = options.frameIndex ?? 0;
   if (!Number.isInteger(frameIndex) || frameIndex < 0 || frameIndex >= document.frames.length) throw new RangeError(`frameIndex must be between 0 and ${document.frames.length - 1}`);
   const scale = options.pixelSize ?? 1;
-  if (!Number.isFinite(scale) || scale <= 0) throw new RangeError("pixelSize must be a positive number");
+  if (!Number.isInteger(scale) || scale <= 0) throw new RangeError("pixelSize must be a positive number");
   const frame = document.frames[frameIndex];
   const width = document.width * scale;
   const height = document.height * scale;

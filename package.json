@@ -1,0 +1,16 @@
+{
+  "name": "openpixel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pixel art JSON assets, a TypeScript SVG renderer, and Rust CLI/MCP tools",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build --workspace @openpixel/renderer",
+    "pack:renderer": "npm pack --workspace @openpixel/renderer"
+  }
+}
