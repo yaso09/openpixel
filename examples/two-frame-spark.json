@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "name": "Two-frame spark",
+  "width": 5,
+  "height": 5,
+  "loop": true,
+  "layers": [{ "id": "spark", "name": "Spark", "visible": true, "opacity": 1 }],
+  "frames": [
+    { "durationMs": 180, "layers": [{ "layerId": "spark", "pixels": [[null,null,"#FFD166",null,null],[null,"#FFD166","#FFFFFF","#FFD166",null],["#FFD166","#FFFFFF","#FF6B6B","#FFFFFF","#FFD166"],[null,"#FFD166","#FFFFFF","#FFD166",null],[null,null,"#FFD166",null,null]] }] },
+    { "durationMs": 180, "layers": [{ "layerId": "spark", "pixels": [[null,null,"#FFFFFF",null,null],[null,"#FFFFFF","#FFD166","#FFFFFF",null],["#FFFFFF","#FFD166","#FF6B6B","#FFD166","#FFFFFF"],[null,"#FFFFFF","#FFD166","#FFFFFF",null],[null,null,"#FFFFFF",null,null]] }] }
+  ]
+}

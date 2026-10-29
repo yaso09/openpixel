@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpixel.dev/schema/v1/pixel-art.json",
+  "title": "OpenPixel asset",
+  "description": "A pixel image or animation represented as ordered layers of color matrices.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "width", "height", "layers", "frames"],
+  "properties": {
+    "version": { "const": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "width": { "type": "integer", "minimum": 1, "maximum": 1024 },
+    "height": { "type": "integer", "minimum": 1, "maximum": 1024 },
+    "loop": { "type": "boolean", "default": true },
+    "layers": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+          "name": { "type": "string", "minLength": 1 },
+          "visible": { "type": "boolean", "default": true },
+          "opacity": { "type": "number", "minimum": 0, "maximum": 1, "default": 1 }
+        }
+      }
+    },
+    "frames": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["durationMs", "layers"],
+        "properties": {
+          "durationMs": { "type": "integer", "minimum": 1, "maximum": 60000 },
+          "layers": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["layerId", "pixels"],
+              "properties": {
+                "layerId": { "type": "string" },
+                "pixels": {
+                  "type": "array",
+                  "items": { "type": "array", "items": { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$" }] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

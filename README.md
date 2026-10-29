@@ -6,7 +6,7 @@ OpenPixel is a toolkit for creating and rendering pixel art images and animation
 
 ## Project status
 
-See the [roadmap](docs/ROADMAP.md) and [phase reports](docs/phases/).
+The v1 JSON format and TypeScript SVG renderer are in place. See the [roadmap](docs/ROADMAP.md), [phase reports](docs/phases/), and [renderer package](packages/pixelart/README.md).
 
 ## License
 
