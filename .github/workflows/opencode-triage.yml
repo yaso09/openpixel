@@ -1,0 +1,36 @@
+name: OpenCode issue triage
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    if: >-
+      github.event.issue.author_association == 'OWNER' ||
+      github.event.issue.author_association == 'MEMBER' ||
+      github.event.issue.author_association == 'COLLABORATOR'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Triage issue
+        uses: anomalyco/opencode/github@2c14fc5586fe0b88e5c04732d2e846769cc35671 # pinned OpenCode GitHub Action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"deny","edit":"deny","task":"deny","websearch":"deny","webfetch":"deny"}'
+        with:
+          model: anthropic/claude-sonnet-5-5
+          use_github_token: true
+          prompt: |
+            Triage the newly opened issue using the issue text and repository documentation.
+            Reply with a concise summary, the likely affected project area, and specific missing details or reproduction steps if needed.
+            Do not edit code, run shell commands, assign people, apply labels, close the issue, or create pull requests.

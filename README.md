@@ -66,6 +66,10 @@ openpixel render art/creature-painted.json --scale 8 --output out/creature.svg
 
 OpenPixel is in active development. See the [roadmap](docs/ROADMAP.md) and [phase reports](docs/phases/).
 
+## GitHub automation
+
+OpenCode handles maintainer commands, read-only issue/PR triage, and a weekly maintenance report. Dependabot checks npm, Cargo, and GitHub Actions dependencies. See [automation setup](docs/automation.md).
+
 ## Contributing
 
 People and AI-assisted contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before making changes.

@@ -1,0 +1,35 @@
+name: Weekly OpenCode maintenance review
+
+on:
+  schedule:
+    - cron: '20 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Review open issues and pull requests
+        uses: anomalyco/opencode/github@2c14fc5586fe0b88e5c04732d2e846769cc35671 # pinned OpenCode GitHub Action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"deny","edit":"deny","task":"deny","websearch":"deny","webfetch":"deny"}'
+        with:
+          model: anthropic/claude-sonnet-5-5
+          use_github_token: true
+          prompt: |
+            Review the repository's open issues and pull requests for maintainers.
+            Summarize duplicates, missing reproduction details, stale discussions, blocked reviews, and the most actionable next items.
+            This is a read-only report: do not edit files, run shell commands, comment on or modify GitHub items, assign, close, approve, merge, or open pull requests.
+            Put the report in the workflow output only.

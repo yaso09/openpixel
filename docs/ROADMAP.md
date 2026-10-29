@@ -28,4 +28,4 @@ Katman matrislerinden oluşan JSON dosyalarını SVG üzerinde çizen TypeScript
 
 ## Şimdiki durum
 
-Aşama 1–5 tamamlandı. Renderer npm workspace paketi hazır; İngilizce ve Türkçe kullanıcı belgeleri eklendi. Sırada katkı rehberi ile GitHub/OpenCode otomasyonları var.
+Aşama 1–6 tamamlandı. Renderer paketi, iki dilli belgeler, katkı rehberi ve GitHub/OpenCode otomasyonları hazır. Sırada son entegrasyon ve yayın hazırlığı var.
