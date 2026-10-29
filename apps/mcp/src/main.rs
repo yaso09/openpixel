@@ -22,9 +22,9 @@ struct PathArgs {
 struct CreateArgs {
     /// File path to create
     path: String,
-    /// Canvas width in pixels (1–2048)
+    /// Canvas width in pixels (1–4096)
     width: usize,
-    /// Canvas height in pixels (1–1152)
+    /// Canvas height in pixels (1–2304)
     height: usize,
     /// Optional asset name
     name: Option<String>,
@@ -138,9 +138,9 @@ impl OpenPixelServer {
         &self,
         Parameters(args): Parameters<CreateArgs>,
     ) -> Result<CallToolResult, McpError> {
-        if !(1..=2048).contains(&args.width) || !(1..=1152).contains(&args.height) || args.width as usize * args.height as usize > 2_359_296 {
+        if !(1..=4096).contains(&args.width) || !(1..=2304).contains(&args.height) || args.width as usize * args.height as usize > 9_437_184 {
             return Ok(CallToolResult::error(vec![ContentBlock::text(
-                "width must be 1–2048, height 1–1152, and total canvas size at most 2,359,296 pixels",
+                "width must be 1–4096, height 1–2304, and total canvas size at most 9,437,184 pixels",
             )]));
         }
         let layers = args

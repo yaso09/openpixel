@@ -54,7 +54,7 @@ player.dispose();
 
 ## JSON v1 format
 
-An asset contains `version`, `width`, `height`, ordered `layers`, and one or more `frames`. Each frame has a `durationMs` and a full-size pixel matrix for every layer. `null` is transparent; pixels use `#RRGGBB` or `#RRGGBBAA`. Layers draw in array order, from back to front. `loop` defaults to `true`. Canvases support up to 2048×1152 pixels (2,359,296 cells total). The SVG renderer merges adjacent equal-color pixels into crisp horizontal runs to keep large renders compact.
+An asset contains `version`, `width`, `height`, ordered `layers`, and one or more `frames`. Each frame has a `durationMs` and a full-size pixel matrix for every layer. `null` is transparent; pixels use `#RRGGBB` or `#RRGGBBAA`. Layers draw in array order, from back to front. `loop` defaults to `true`. Canvases support up to 4096×2304 pixels (9,437,184 cells total). The SVG renderer merges adjacent equal-color pixels into crisp horizontal runs to keep large renders compact.
 
 See [the shared JSON Schema](./schemas/pixel-art.v1.schema.json) and [example animation](https://github.com/yaso09/openpixel/blob/master/examples/two-frame-spark.json).
 

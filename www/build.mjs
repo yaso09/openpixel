@@ -5,7 +5,8 @@ import { renderFrameToSvg, validatePixelArt } from '@openpixel/renderer';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = resolve(root, 'www/assets/landscape');
-const width = 2048, height = 1152;
+const sourceWidth = 2048, sourceHeight = 1152, scale = 2;
+let width = sourceWidth, height = sourceHeight;
 const colors = {
   sky0:'#111d35', sky1:'#1c2d49', sky2:'#35435d', sky3:'#66526a', sky4:'#b36b70', sky5:'#e39a78',
   cloud:'#d58d83', cloudHi:'#f1b58c', cloudShade:'#795d71', star:'#f6d8ad', moon:'#ffd69a', moonShade:'#e8a681',
@@ -15,14 +16,14 @@ const colors = {
   water0:'#34545b', water1:'#2c4a53', water2:'#26424d', water3:'#203b47', waterHi:'#698078', waterDim:'#46666a',
   reflect0:'#d59b7e', reflect1:'#bb8176', reflect2:'#8e6b70', shore:'#1b3439', reed:'#72806a', rock:'#263b40'
 };
-const pixels = Array.from({ length: height }, () => Array(width).fill(null));
+let pixels = Array.from({ length: height }, () => Array(width).fill(null));
 const paint = (x, y, color) => { if (x >= 0 && x < width && y >= 0 && y < height) pixels[y][x] = color; };
 const span = (y, left, right, color) => {
   const a = Math.max(0, Math.ceil(left)), b = Math.min(width - 1, Math.floor(right));
   if (y < 0 || y >= height || a > b) return;
   pixels[y].fill(color, a, b + 1);
 };
-const rect = (x, y, w, h, color) => { for (let yy = y; yy < y + h; yy++) span(yy, x, x + w - 1, color); };
+const rect = (x, y, w, h, color) => { for (let yy = Math.floor(y); yy < Math.ceil(y + h); yy++) span(yy, x, x + w - 1, color); };
 let seed = 0x0face;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 const noise = (x, y, mod = 1) => ((Math.floor(x / 6) * 374761393 + Math.floor(y / 4) * 668265263 + 1442695041) >>> 0) % mod;
@@ -49,17 +50,33 @@ for (let i = 0; i < 180; i++) {
   paint(x, y, i % 7 === 0 ? colors.cloudHi : colors.star);
   if (i % 19 === 0) { paint(x - 1, y, colors.sky2); paint(x + 1, y, colors.sky2); paint(x, y - 1, colors.sky2); paint(x, y + 1, colors.sky2); }
 }
-// Thin stepped clouds catch the warm light over the ridges.
-for (const [x,y,w,h] of [[160,270,410,32],[485,225,300,22],[830,310,370,30],[1450,235,380,26],[1190,390,310,20],[80,420,230,17]]) {
-  for (let yy = 0; yy < h; yy++) {
-    const inset = Math.floor(Math.abs(yy - h / 2) * .72);
-    span(y + yy, x + inset, x + w - inset, yy < h * .35 ? colors.cloudShade : yy > h * .7 ? colors.cloud : colors.cloudHi);
+// Puffy cloud banks combine stepped silhouettes, warm undersides, and broken highlights.
+const cloudBank = (x, y, w, h) => {
+  const puffs = [
+    [x + w * .17, y + h * .60, w * .19, h * .42],
+    [x + w * .36, y + h * .40, w * .22, h * .55],
+    [x + w * .57, y + h * .48, w * .24, h * .49],
+    [x + w * .79, y + h * .62, w * .20, h * .38]
+  ];
+  for (let yy = Math.floor(y); yy < y + h; yy++) {
+    const spans = puffs.map(([cx, cy, rx, ry]) => {
+      const ratio = (yy - cy) / ry;
+      return Math.abs(ratio) > 1 ? null : [cx - rx * Math.sqrt(1 - ratio * ratio), cx + rx * Math.sqrt(1 - ratio * ratio)];
+    }).filter(Boolean);
+    if (!spans.length) continue;
+    span(yy, Math.min(...spans.map((s) => s[0])), Math.max(...spans.map((s) => s[1])), yy > y + h * .60 ? colors.cloudShade : colors.cloud);
+    if (yy < y + h * .38) {
+      const inset = Math.floor((yy - y) * .45);
+      span(yy, x + w * .16 + inset, x + w * .83 - inset, colors.cloudHi);
+    }
   }
-  for (let xx = x + 30; xx < x + w - 30; xx += 72) {
-    rect(xx, y - 5, 35, 5, colors.cloudHi);
-    rect(xx + 14, y + h, 44, 4, colors.cloudShade);
+  rect(x + w * .12, y + h * .72, w * .75, h * .20, colors.cloudShade);
+  for (let i = 0; i < 5; i++) {
+    const hx = x + w * (.18 + i * .14), hy = y + h * (.18 + (i % 2) * .07);
+    rect(hx, hy, w * .028, Math.max(2, h * .04), colors.cloudHi);
   }
-}
+};
+for (const bank of [[80,250,520,105],[580,220,360,82],[1010,300,470,96],[1540,215,430,90],[1270,390,360,66],[80,430,250,55]]) cloudBank(...bank);
 // Large setting sun with horizontal pixel cuts and a broad reflected glow.
 const sunX = 1392, sunY = 394, sunR = 104;
 for (let y = -sunR; y <= sunR; y++) {
@@ -69,8 +86,8 @@ for (let y = -sunR; y <= sunR; y++) {
 for (let y = sunY + 17; y < sunY + 75; y += 14) span(y, sunX - 72 + (y % 3) * 5, sunX + 77 - (y % 4) * 7, colors.sky4);
 
 // Distant mountain chain: stepped ridges, cool shadow planes, and broken snow caps.
-const farPeaks = [[-80,515],[150,422],[325,468],[560,315],[760,444],[1000,356],[1195,465],[1450,335],[1660,430],[1870,360],[2130,490]];
-const mainPeaks = [[-60,650],[170,555],[360,612],[630,410],[830,560],[1080,448],[1280,570],[1510,392],[1710,540],[1910,425],[2110,600]];
+const farPeaks = [[-80,528],[90,472],[230,498],[395,392],[545,448],[735,330],[875,462],[1030,372],[1195,482],[1370,410],[1535,326],[1680,430],[1845,356],[1980,424],[2130,500]];
+const mainPeaks = [[-60,680],[85,610],[210,644],[365,566],[520,620],[685,408],[820,548],[970,500],[1110,566],[1250,450],[1390,510],[1535,365],[1675,485],[1815,438],[1965,390],[2110,620]];
 const topAt = (points, x) => {
   let i = 1; while (i < points.length && points[i][0] < x) i++;
   const [x0,y0] = points[i - 1], [x1,y1] = points[Math.min(i, points.length - 1)];
@@ -176,15 +193,47 @@ for (let i = 0; i < 80; i++) {
   for (let dy = -r; dy <= r; dy += 2) span(y + dy, x - r + Math.abs(dy), x + r - Math.abs(dy), i % 2 ? colors.rock : colors.pine1);
 }
 
+// Expand every hand-drawn source pixel into a 2×2 block, then add detail on the native grid.
+const sourcePixels = pixels;
+width = sourceWidth * scale;
+height = sourceHeight * scale;
+pixels = Array.from({ length: height }, (_, y) => {
+  const sourceRow = sourcePixels[Math.floor(y / scale)];
+  return Array.from({ length: width }, (_, x) => sourceRow[Math.floor(x / scale)]);
+});
+for (const [cx, cy, rx, ry] of [[420,540,260,86],[1510,465,212,74],[2400,625,290,82],[3350,475,245,78]]) {
+  for (let i = 0; i < 720; i++) {
+    const x = cx + Math.floor((random() * 2 - 1) * rx);
+    const y = cy + Math.floor((random() * 2 - 1) * ry);
+    if (x < 0 || x >= width || y < 0 || y >= height) continue;
+    const ellipse = ((x-cx)/rx)**2 + ((y-cy)/ry)**2;
+    if (ellipse < 1 && (pixels[y][x] === colors.cloud || pixels[y][x] === colors.cloudShade)) {
+      paint(x, y, y < cy ? colors.cloudHi : colors.cloudShade);
+    }
+  }
+}
+// Add broken snow shelves and rock facets on the enlarged, irregular mountain faces.
+const mountainTones = new Set([colors.far0,colors.far1,colors.far2,colors.snow0,colors.snow1,colors.snowShade,colors.peak0,colors.peak1,colors.peak2,colors.peakDark,colors.snowWhite]);
+for (let i = 0; i < 5200; i++) {
+  const x = Math.floor(random() * width), y = 650 + Math.floor(random() * 830);
+  if (!mountainTones.has(pixels[y][x])) continue;
+  const length = 3 + Math.floor(random() * 15), direction = random() < .5 ? -1 : 1;
+  const tone = pixels[y][x] === colors.snowWhite || pixels[y][x] === colors.snow1 ? colors.snowShade : (i % 3 ? colors.peak2 : colors.peakDark);
+  for (let step = 0; step < length; step++) {
+    const xx = x + direction * step, yy = y + Math.floor(step * .38);
+    if (yy < height && xx >= 0 && xx < width && mountainTones.has(pixels[yy][xx])) paint(xx, yy, tone);
+  }
+}
+
 const document = {
   version: 1, name: 'Twilight lake beneath the alpine peaks', width, height, loop: false,
-  layers: [{ id: 'landscape', name: '2048 × 1152 hand-drawn pixel landscape', visible: true, opacity: 1 }],
+  layers: [{ id: 'landscape', name: '4096 × 2304 hand-drawn pixel landscape', visible: true, opacity: 1 }],
   frames: [{ durationMs: 1000, layers: [{ layerId: 'landscape', pixels }] }]
 };
 validatePixelArt(document);
 await mkdir(out, { recursive: true });
 await writeFile(resolve(out, 'landscape.json'), `${JSON.stringify(document)}\n`, 'utf8');
-const glints = [[1290, 827], [1432, 866], [1360, 903], [1524, 949], [1318, 991], [1480, 1034]];
+const glints = [[2580, 1654], [2864, 1732], [2720, 1806], [3048, 1898], [2636, 1982], [2960, 2068]];
 for (let frame = 0; frame < 4; frame++) {
   const changed = [];
   for (let i = 0; i < glints.length; i++) {
@@ -193,7 +242,7 @@ for (let frame = 0; frame < 4; frame++) {
     changed.push([xx, y, pixels[y][xx]]);
     paint(xx, y, frame % 2 ? colors.reflect0 : colors.waterHi);
   }
-  const svg = renderFrameToSvg(document, { pixelSize: 1, title: '2048 by 1152 OpenPixel alpine lake landscape' });
+  const svg = renderFrameToSvg(document, { pixelSize: 1, title: '4096 by 2304 OpenPixel alpine lake landscape' });
   await writeFile(resolve(out, `frame-${frame + 1}.svg`), svg, 'utf8');
   for (const [x, y, color] of changed) paint(x, y, color);
 }

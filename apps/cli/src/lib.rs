@@ -57,11 +57,11 @@ pub fn validate(doc: &Document) -> Result<()> {
     if doc.version != 1 {
         bail!("version must be 1");
     }
-    if !(1..=2048).contains(&doc.width) || !(1..=1152).contains(&doc.height) {
-        bail!("width must be from 1 to 2048 and height from 1 to 1152");
+    if !(1..=4096).contains(&doc.width) || !(1..=2304).contains(&doc.height) {
+        bail!("width must be from 1 to 4096 and height from 1 to 2304");
     }
-    if doc.width as usize * doc.height as usize > 2_359_296 {
-        bail!("canvas must not exceed 2,359,296 pixels");
+    if doc.width as usize * doc.height as usize > 9_437_184 {
+        bail!("canvas must not exceed 9,437,184 pixels");
     }
     if doc.layers.is_empty() || doc.frames.is_empty() {
         bail!("at least one layer and frame are required");
