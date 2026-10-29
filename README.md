@@ -5,8 +5,8 @@ OpenPixel is a toolkit for creating, editing, and rendering pixel art images and
 ## Packages
 
 - [`@openpixel/renderer`](packages/pixelart/README.md): TypeScript types, validation, SVG frame rendering, and browser animation player.
-- [`openpixel`](apps/cli/README.md): Rust command-line asset authoring and SVG export.
-- [`openpixel-mcp`](apps/mcp/README.md): Rust MCP server over stdio and Streamable HTTP/SSE.
+- [`openpixel`](apps/cli/README.md): Rust command-line asset authoring, SVG export, and MP4 video encoding.
+- [`openpixel-mcp`](apps/mcp/README.md): Rust MCP server over stdio and Streamable HTTP/SSE, including MP4 video export.
 - [OpenPixel Pixel Art skill](.agents/skills/openpixel-pixel-art/SKILL.md): source-backed drawing and animation guidance for AI agents using OpenPixel.
 
 ## Install the renderer

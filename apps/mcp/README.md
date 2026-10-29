@@ -1,6 +1,6 @@
 # OpenPixel MCP server
 
-The Rust MCP server exposes the OpenPixel CLI and renderer capabilities as MCP tools. It shares the v1 document model, validation, and SVG renderer with the CLI crate.
+The Rust MCP server exposes OpenPixel asset authoring, validation, SVG rendering, and MP4 video export as MCP tools. It shares the v1 document model, validation, and rendering pipeline with the CLI crate.
 
 ## Run locally
 
@@ -18,9 +18,11 @@ The HTTP mode uses the current MCP Streamable HTTP transport. Responses use Serv
 ## Tools
 
 - `create_asset`, `validate_asset`, `inspect_asset`
-- `render_frame`, `render_all_frames`
+- `render_frame`, `render_all_frames`, `render_video`
 - `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, `set_loop`
 
-All modifications take a source `path` and explicit `output_path`, so the caller decides whether to create a new file or update in place. Rendering returns SVG content directly as tool text. MCP tool failures return visible tool errors, while malformed protocol parameters are rejected through the MCP error channel.
+`render_video` writes an H.264 MP4 to the requested `output_path`, follows frame durations, and accepts optional `fps` and pixel `scale` values. It requires ffmpeg with `libx264` available on `PATH`.
+
+All modifications take a source `path` and explicit `output_path`, so the caller decides whether to create a new file or update in place. SVG rendering returns SVG content directly as tool text; video rendering writes the binary MP4 to the explicit destination. MCP tool failures return visible tool errors, while malformed protocol parameters are rejected through the MCP error channel.
 
 The tool schemas and descriptions are generated from Rust parameter types and list through the MCP `tools/list` method.

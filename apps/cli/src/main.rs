@@ -1,6 +1,7 @@
 use anyhow::{bail, Context, Result};
 use openpixel_cli::{
-    read_doc, render_svg, valid_color, validate, write_doc, Document, Frame, FrameLayer, Layer,
+    export_mp4, read_doc, render_svg, valid_color, validate, write_doc, Document, Frame,
+    FrameLayer, Layer,
 };
 use std::{collections::BTreeMap, env, fs, path::Path, process};
 
@@ -38,6 +39,7 @@ fn run() -> Result<()> {
         }
         "render" => render_command(args)?,
         "render-frames" => render_frames_command(args)?,
+        "render-video" => render_video_command(args)?,
         "new" => new_command(args)?,
         "set-pixel" => set_pixel_command(args)?,
         "set-layer" => set_layer_command(args)?,
@@ -58,6 +60,7 @@ Commands:\n\
   inspect <file>                          Show asset, frame, layer, and palette info\n\
   render <file> --output FILE [--frame N] [--scale N] [--background #RRGGBB] [--title TEXT]\n\
   render-frames <file> --out-dir DIR [--scale N] [--title TEXT]  Export every frame as SVG\n\
+  render-video <file> --output FILE.mp4 [--fps N] [--scale N]    Encode an MP4 animation with ffmpeg\n\
   set-pixel <file> --output FILE --frame N --layer ID --x N --y N --color #RRGGBB|null\n\
   set-layer <file> --output FILE --layer ID [--name NAME] [--visible true|false] [--opacity 0..1]\n\
   add-frame <file> --output FILE [--source-frame N] [--duration-ms N]\n\
@@ -179,6 +182,25 @@ fn render_frames_command(mut args: Vec<String>) -> Result<()> {
         write_svg(&doc, i, scale, None, title.as_deref(), &path)?;
     }
     println!("Exported {} SVG frame(s) to {out_dir}", doc.frames.len());
+    Ok(())
+}
+fn render_video_command(mut args: Vec<String>) -> Result<()> {
+    let input = required_pos(&mut args, "input file")?;
+    let output = option(&mut args, "--output", None)?.context("missing --output")?;
+    let fps = number(
+        option(&mut args, "--fps", Some("30".into()))?,
+        "fps",
+        Some(30_u32),
+    )?;
+    let scale = number(
+        option(&mut args, "--scale", Some("1".into()))?,
+        "scale",
+        Some(1_usize),
+    )?;
+    reject_extra(&args)?;
+    let doc = read_doc(&input)?;
+    let (width, height, frames) = export_mp4(&doc, Path::new(&output), fps, scale)?;
+    println!("Encoded {frames} video frame(s) at {width}x{height} to {output}");
     Ok(())
 }
 fn write_svg(

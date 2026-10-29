@@ -5,8 +5,8 @@ OpenPixel, piksel matrisi katmanlarından oluşan resim ve animasyonları oluşt
 ## Paketler
 
 - [`@openpixel/renderer`](packages/pixelart/README.md): TypeScript türleri, doğrulama, SVG kare çizimi ve tarayıcı animasyon oynatıcısı.
-- [`openpixel`](apps/cli/README.md): Rust komut satırı aracı ve SVG dışa aktarımı.
-- [`openpixel-mcp`](apps/mcp/README.md): stdio ve Streamable HTTP/SSE üzerinden Rust MCP sunucusu.
+- [`openpixel`](apps/cli/README.md): Rust komut satırı aracı; SVG dışa aktarımı ve MP4 video kodlama (ffmpeg + libx264 gerekir).
+- [`openpixel-mcp`](apps/mcp/README.md): stdio ve Streamable HTTP/SSE üzerinden Rust MCP sunucusu; MP4 video dışa aktarımı da sunar.
 - [OpenPixel Pixel Art becerisi](.agents/skills/openpixel-pixel-art/SKILL.md): OpenPixel kullanan ajanlar için kaynaklı çizim ve animasyon yönergeleri.
 
 ## Renderer kurulumu

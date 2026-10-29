@@ -1,6 +1,11 @@
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{fs, path::Path};
+use std::{
+    fs,
+    io::{Read, Write},
+    path::Path,
+    process::{Command, Stdio},
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -205,6 +210,192 @@ pub fn render_svg(
     }
     svg.push_str("</svg>");
     Ok(svg)
+}
+
+/// Encode the document's timed frames as an H.264 MP4 using ffmpeg.
+pub fn export_mp4(
+    doc: &Document,
+    output: &Path,
+    fps: u32,
+    scale: usize,
+) -> Result<(usize, usize, usize)> {
+    validate(doc)?;
+    if !(1..=60).contains(&fps) {
+        bail!("fps must be from 1 to 60");
+    }
+    if !(1..=16).contains(&scale) {
+        bail!("scale must be from 1 to 16");
+    }
+    if output
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(|value| value.to_ascii_lowercase())
+        != Some("mp4".into())
+    {
+        bail!("output file must use the .mp4 extension");
+    }
+    let width = doc
+        .width
+        .checked_mul(scale)
+        .context("scaled video width overflows")?;
+    let height = doc
+        .height
+        .checked_mul(scale)
+        .context("scaled video height overflows")?;
+    if width
+        .checked_mul(height)
+        .context("scaled video dimensions overflow")?
+        > 16_777_216
+    {
+        bail!("scaled video must not exceed 16,777,216 pixels per frame");
+    }
+    let total_ms: u64 = doc
+        .frames
+        .iter()
+        .map(|frame| frame.duration_ms as u64)
+        .sum();
+    if total_ms > 600_000 {
+        bail!("video duration must not exceed 10 minutes");
+    }
+    let frame_count = ((total_ms * fps as u64 + 500) / 1000).max(1) as usize;
+    let visible_layers: Vec<_> = doc
+        .layers
+        .iter()
+        .filter(|layer| layer.visible)
+        .map(|layer| {
+            let entry = doc.frames[0]
+                .layers
+                .iter()
+                .find(|entry| entry.layer_id == layer.id)
+                .expect("validated layer");
+            (layer.opacity, entry)
+        })
+        .collect();
+    if let Some(parent) = output.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    let mut child = Command::new("ffmpeg")
+        .args(["-hide_banner", "-loglevel", "error", "-n", "-f", "rawvideo", "-pixel_format", "rgb24"])
+        .arg("-video_size").arg(format!("{width}x{height}"))
+        .arg("-framerate").arg(fps.to_string())
+        .args(["-i", "pipe:0", "-an", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart"])
+        .arg(output)
+        .stdin(Stdio::piped()).stderr(Stdio::piped())
+        .spawn().context("could not start ffmpeg; install ffmpeg with libx264 support and make it available on PATH")?;
+
+    let stream_result = (|| -> Result<()> {
+        let input = child
+            .stdin
+            .as_mut()
+            .context("ffmpeg stdin is unavailable")?;
+        let mut elapsed = 0_u64;
+        let frame_ends: Vec<u64> = doc
+            .frames
+            .iter()
+            .map(|frame| {
+                elapsed += frame.duration_ms as u64;
+                elapsed
+            })
+            .collect();
+        let mut repeats = vec![0_usize; doc.frames.len()];
+        for output_index in 0..frame_count {
+            let time_ms = output_index as u64 * 1000 / fps as u64;
+            let source_index = frame_ends
+                .iter()
+                .position(|end| time_ms < *end)
+                .unwrap_or(doc.frames.len() - 1);
+            repeats[source_index] += 1;
+        }
+        for (source_index, repeat_count) in repeats.into_iter().enumerate() {
+            if repeat_count == 0 {
+                continue;
+            }
+            let frame = write_rgb_frame(doc, source_index, scale, &visible_layers)?;
+            for _ in 0..repeat_count {
+                input
+                    .write_all(&frame)
+                    .context("could not stream pixel frame to ffmpeg")?;
+            }
+        }
+        Ok(())
+    })();
+    drop(child.stdin.take());
+    if let Err(error) = stream_result {
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(error);
+    }
+    let status = child.wait().context("could not wait for ffmpeg")?;
+    if !status.success() {
+        let mut stderr = String::new();
+        if let Some(mut pipe) = child.stderr.take() {
+            let _ = pipe.read_to_string(&mut stderr);
+        }
+        bail!("ffmpeg could not encode MP4: {}", stderr.trim());
+    }
+    Ok((width + width % 2, height + height % 2, frame_count))
+}
+
+fn write_rgb_frame(
+    doc: &Document,
+    frame_index: usize,
+    scale: usize,
+    visible_layers: &[(f32, &FrameLayer)],
+) -> Result<Vec<u8>> {
+    let output_width = doc.width * scale;
+    let mut expanded_row = Vec::with_capacity(output_width * 3);
+    let mut output = Vec::with_capacity(output_width * doc.height * scale * 3);
+    let frame_layers: Vec<(f32, &FrameLayer)> = visible_layers
+        .iter()
+        .map(|(opacity, base_entry)| {
+            let entry = doc.frames[frame_index]
+                .layers
+                .iter()
+                .find(|entry| entry.layer_id == base_entry.layer_id)
+                .expect("validated frame layer");
+            (*opacity, entry)
+        })
+        .collect();
+    for source_y in 0..doc.height {
+        expanded_row.clear();
+        for x in 0..doc.width {
+            let mut rgb = [0.0_f32; 3];
+            for (opacity, entry) in &frame_layers {
+                if let Some(color) = &entry.pixels[source_y][x] {
+                    let raw = &color.as_bytes()[1..];
+                    let channel = |index: usize| {
+                        u8::from_str_radix(
+                            std::str::from_utf8(&raw[index..index + 2]).expect("ASCII hex"),
+                            16,
+                        )
+                        .expect("validated hex") as f32
+                    };
+                    let alpha = (if raw.len() == 8 {
+                        channel(6) / 255.0
+                    } else {
+                        1.0
+                    }) * *opacity;
+                    for index in 0..3 {
+                        rgb[index] = channel(index * 2) * alpha + rgb[index] * (1.0 - alpha);
+                    }
+                }
+            }
+            let pixel = [
+                rgb[0].round() as u8,
+                rgb[1].round() as u8,
+                rgb[2].round() as u8,
+            ];
+            for _ in 0..scale {
+                expanded_row.extend_from_slice(&pixel);
+            }
+        }
+        for _ in 0..scale {
+            output.extend_from_slice(&expanded_row);
+        }
+    }
+    Ok(output)
 }
 fn escape_xml(s: &str) -> String {
     s.replace('&', "&amp;")

@@ -1,5 +1,7 @@
 use anyhow::{Context, Result};
-use openpixel_cli::{read_doc, render_svg, write_doc, Document, Frame, FrameLayer, Layer};
+use openpixel_cli::{
+    export_mp4, read_doc, render_svg, write_doc, Document, Frame, FrameLayer, Layer,
+};
 use rmcp::{
     handler::server::router::tool::ToolRouter, handler::server::wrapper::Parameters, model::*,
     schemars::JsonSchema, tool, tool_handler, tool_router, ErrorData as McpError, ServerHandler,
@@ -52,6 +54,17 @@ struct RenderAllArgs {
     scale: Option<usize>,
     /// Optional accessible SVG title
     title: Option<String>,
+}
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
+struct VideoArgs {
+    /// Existing OpenPixel animation JSON asset path
+    path: String,
+    /// Destination .mp4 path
+    output_path: String,
+    /// Output frame rate, from 1 to 60; defaults to 30
+    fps: Option<u32>,
+    /// Integer pixel scale from 1 to 16; defaults to 1
+    scale: Option<usize>,
 }
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 struct SetPixelArgs {
@@ -138,7 +151,10 @@ impl OpenPixelServer {
         &self,
         Parameters(args): Parameters<CreateArgs>,
     ) -> Result<CallToolResult, McpError> {
-        if !(1..=4096).contains(&args.width) || !(1..=2304).contains(&args.height) || args.width as usize * args.height as usize > 9_437_184 {
+        if !(1..=4096).contains(&args.width)
+            || !(1..=2304).contains(&args.height)
+            || args.width as usize * args.height as usize > 9_437_184
+        {
             return Ok(CallToolResult::error(vec![ContentBlock::text(
                 "width must be 1–4096, height 1–2304, and total canvas size at most 9,437,184 pixels",
             )]));
@@ -247,6 +263,27 @@ impl OpenPixelServer {
                 })
                 .collect::<Result<Vec<_>>>()?;
             serde_json::to_string(&frames).context("could not serialize SVG frames")
+        }))
+    }
+
+    #[tool(
+        description = "Encode an OpenPixel animation directly to an H.264 MP4 video. Requires ffmpeg with libx264 available on PATH."
+    )]
+    fn render_video(
+        &self,
+        Parameters(args): Parameters<VideoArgs>,
+    ) -> Result<CallToolResult, McpError> {
+        finish(read_doc(&args.path).and_then(|doc| {
+            let (width, height, frames) = export_mp4(
+                &doc,
+                std::path::Path::new(&args.output_path),
+                args.fps.unwrap_or(30),
+                args.scale.unwrap_or(1),
+            )?;
+            Ok(format!(
+                "Encoded {frames} video frame(s) at {width}x{height} to {}",
+                args.output_path
+            ))
         }))
     }
     #[tool(
