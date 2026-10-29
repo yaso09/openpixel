@@ -17,6 +17,7 @@ Katman matrislerinden oluşan JSON dosyalarını SVG üzerinde çizen TypeScript
 | 5. Paketleme ve kullanıcı belgeleri | npm paketleme/kurulum, İngilizce ve Türkçe README, kullanım örnekleri | Temiz kurulum akışı ve dokümantasyon |
 | 6. Katkı ve otomasyon | CONTRIBUTING, yapay zekâ katkısı ilkeleri, GitHub Actions/opencode action iş akışları | PR/issue ve düzenli bakım akışları belgeli ve yapılandırılmış |
 | 7. Son entegrasyon | Uçtan uca uyumluluk, sürümleme ve yayın hazırlığı | CLI/MCP JSON çıktısı renderer'da açılıyor; dağıtım talimatları tamam |
+| 8. Pixel art becerisi | Güvenilir kaynak ve yapay zekâ çizim ilkelerini OpenPixel JSON/araçlarıyla birleştiren ajan becerisi | Kaynaklı SKILL, OpenPixel iş akışı ve kalite kapısı |
 
 ## Tasarım kararları (başlangıç varsayımları)
 
@@ -28,4 +29,4 @@ Katman matrislerinden oluşan JSON dosyalarını SVG üzerinde çizen TypeScript
 
 ## Şimdiki durum
 
-Aşama 1–7 tamamlandı. Renderer, Rust CLI/MCP, npm paketi, iki dilli belgeler, katkı rehberi ve OpenCode Go ile GitHub otomasyonları hazır. Son entegrasyon sonuçları `docs/phases/07-final-integration.md` dosyasında. npm yayını ve GitHub Actions secret kurulumu depo sahibinin yayın yapılandırmasında tamamlanacak.
+Aşama 1–8 tamamlandı. Renderer, Rust CLI/MCP, npm paketi, iki dilli belgeler, katkı rehberi, OpenCode Go otomasyonları ve OpenPixel Pixel Art ajan becerisi hazır. Aşama raporları `docs/phases/` altındadır. npm yayını ve GitHub Actions secret kurulumu depo sahibinin yayın yapılandırmasında tamamlanacak.
