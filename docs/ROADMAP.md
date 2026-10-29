@@ -28,4 +28,4 @@ Katman matrislerinden oluşan JSON dosyalarını SVG üzerinde çizen TypeScript
 
 ## Şimdiki durum
 
-Aşama 1 ve 2 tamamlandı. TypeScript renderer ile v1 JSON sözleşmesi hazır; sıradaki aşama Rust CLI geliştirmesidir.
+Aşama 1, 2 ve 3 tamamlandı. TypeScript renderer ve Rust CLI aynı v1 JSON sözleşmesini kullanıyor; sıradaki aşama Rust MCP sunucusudur.
