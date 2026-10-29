@@ -28,10 +28,10 @@ jobs:
         uses: anomalyco/opencode/github@2c14fc5586fe0b88e5c04732d2e846769cc35671 # pinned OpenCode GitHub Action
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"deny","edit":"deny","task":"deny","websearch":"deny","webfetch":"deny"}'
         with:
-          model: anthropic/claude-sonnet-5-5
+          model: opencode-go/gpt-5.6-luna
           use_github_token: true
           prompt: |
             Review this pull request for actionable bugs, security issues, and regressions introduced by its changes.

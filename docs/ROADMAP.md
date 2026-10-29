@@ -28,4 +28,4 @@ Katman matrislerinden oluşan JSON dosyalarını SVG üzerinde çizen TypeScript
 
 ## Şimdiki durum
 
-Aşama 1–6 tamamlandı. Renderer paketi, iki dilli belgeler, katkı rehberi ve GitHub/OpenCode otomasyonları hazır. Sırada son entegrasyon ve yayın hazırlığı var.
+Aşama 1–7 tamamlandı. Renderer, Rust CLI/MCP, npm paketi, iki dilli belgeler, katkı rehberi ve OpenCode Go ile GitHub otomasyonları hazır. Son entegrasyon sonuçları `docs/phases/07-final-integration.md` dosyasında. npm yayını ve GitHub Actions secret kurulumu depo sahibinin yayın yapılandırmasında tamamlanacak.

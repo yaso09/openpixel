@@ -16,7 +16,7 @@
 - Kod değişikliği talebi yapan yorum workflow'u yalnızca yetkili katkıcıdan gelen tetiklerde `contents`, `issues` ve `pull-requests` yazma iznine sahip.
 - PR inceleme ve issue triage workflow'larında OpenCode `bash` ve `edit` izinleri reddedilir. PR inceleme aynı repo dalıyla sınırlıdır; fork PR kodu checkout edilmez.
 - Haftalık bakım raporunun GitHub token'ı salt okunurdur ve workflow dosya/komut araçlarını kapatır.
-- Sağlayıcı anahtarı `ANTHROPIC_API_KEY` Actions secret olarak tanımlanmalıdır. Bu depodan dış servise çağrı veya yayın yapılmadı.
+- OpenCode Go sağlayıcı anahtarı `OPENCODE_API_KEY` Actions secret olarak tanımlanmalıdır; varsayılan model `opencode-go/gpt-5.6-luna` olarak ayarlanmıştır. Bu depodan dış servise çağrı veya yayın yapılmadı.
 
 ## Doğrulama
 

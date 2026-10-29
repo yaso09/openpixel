@@ -5,7 +5,7 @@ OpenPixel uses OpenCode GitHub workflows for maintainer-requested tasks, read-on
 ## Setup
 
 1. Enable GitHub Actions for the repository.
-2. Add an `ANTHROPIC_API_KEY` Actions secret for the configured model (`anthropic/claude-sonnet-5-5`).
+2. Add an `OPENCODE_API_KEY` Actions secret using an OpenCode Go API key. The workflows use `opencode-go/gpt-5.6-luna`; see the [OpenCode Go guide](https://opencode.ai/docs/go/) for subscription and model details.
 3. Review the permissions declared in each workflow. The mention-command workflow can create a branch or pull request when a trusted maintainer asks it to make a change. The review and triage workflows cannot edit files or run shell commands, and the scheduled report uses a read-only GitHub token.
 
 The workflows use OpenCode's documented `use_github_token` mode. This passes each job's scoped `GITHUB_TOKEN` to the action, so a separate OpenCode GitHub App installation or OIDC permission is not required. The GitHub token permissions are declared per workflow. See the [OpenCode GitHub guide](https://opencode.ai/docs/github/) for the token mode and the [permissions guide](https://opencode.ai/docs/permissions/) for tool restrictions.
