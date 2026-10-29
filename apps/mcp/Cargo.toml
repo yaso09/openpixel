@@ -1,0 +1,20 @@
+[package]
+name = "openpixel-mcp"
+version = "0.1.0"
+edition = "2021"
+description = "MCP server for creating and rendering OpenPixel assets"
+license = "MIT"
+
+[[bin]]
+name = "openpixel-mcp"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+axum = "0.8"
+openpixel-cli = { path = "../cli" }
+rmcp = { version = "3.8.0", features = ["server", "macros", "schemars", "transport-io", "transport-streamable-http-server"] }
+schemars = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "net", "signal"] }
