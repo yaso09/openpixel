@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#172b35" />
+  <meta name="description" content="OpenPixel — tiny pixels, living worlds." />
+  <title>OpenPixel — Pixel worlds in motion</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <main class="scene" aria-label="Animated pixel-art mountain lake">
+    <button id="landscape" class="landscape" aria-label="Change the scene" title="Change the scene">
+      <img id="landscape-frame" src="./assets/landscape/frame-1.svg" alt="Pixel-art mountain lake at dusk" />
+      <span class="scene-hint" data-pixel-text data-pixel-size="1" aria-hidden="true">CLICK TO SHIFT THE LIGHT</span>
+    </button>
+    <section class="centerpiece" aria-label="OpenPixel install command">
+      <h1><span data-pixel-text data-pixel-size="8" aria-hidden="true">OPENPIXEL</span><span class="sr-only">OpenPixel</span></h1>
+      <div class="install" aria-label="Installation command">
+        <code id="install-command" data-pixel-text data-pixel-size="2" aria-label="npm install @openpixel/renderer">npm install @openpixel/renderer</code>
+        <button id="copy-command" class="copy" aria-label="Copy installation command"><span data-pixel-text data-pixel-size="1" aria-hidden="true">COPY</span><span class="sr-only">Copy command</span></button>
+      </div>
+      <span id="copy-status" class="sr-only" aria-live="polite"></span>
+    </section>
+  </main>
+  <footer class="footer">
+    <span data-pixel-text data-pixel-size="1" aria-label="By Yasir Eymen">BY YASIR EYMEN</span>
+    <a href="https://github.com/yaso09/openpixel" target="_blank" rel="noreferrer" aria-label="OpenPixel GitHub repository"><span data-pixel-text data-pixel-size="1" aria-hidden="true">GITHUB REPOSITORY</span><span class="sr-only">OpenPixel GitHub repository</span><span class="pixel-arrow" aria-hidden="true"></span></a>
+  </footer>
+</body>
+</html>
