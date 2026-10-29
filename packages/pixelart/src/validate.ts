@@ -14,8 +14,9 @@ export function validatePixelArt(value: unknown): asserts value is PixelArtDocum
   const doc = value as Partial<PixelArtDocument> | null;
   if (!doc || typeof doc !== "object") throw new PixelArtValidationError(["document must be an object"]);
   if (doc.version !== 1) issues.push("version must be 1");
-  if (!Number.isInteger(doc.width) || !doc.width || doc.width < 1 || doc.width > 1024) issues.push("width must be an integer from 1 to 1024");
-  if (!Number.isInteger(doc.height) || !doc.height || doc.height < 1 || doc.height > 1024) issues.push("height must be an integer from 1 to 1024");
+  if (!Number.isInteger(doc.width) || !doc.width || doc.width < 1 || doc.width > 2048) issues.push("width must be an integer from 1 to 2048");
+  if (!Number.isInteger(doc.height) || !doc.height || doc.height < 1 || doc.height > 1152) issues.push("height must be an integer from 1 to 1152");
+  if (Number.isInteger(doc.width) && Number.isInteger(doc.height) && doc.width! * doc.height! > 2_359_296) issues.push("canvas must not exceed 2,359,296 pixels");
   if (!Array.isArray(doc.layers) || doc.layers.length === 0) issues.push("layers must be a non-empty array");
   if (!Array.isArray(doc.frames) || doc.frames.length === 0) issues.push("frames must be a non-empty array");
 

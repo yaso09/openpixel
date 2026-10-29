@@ -21,11 +21,23 @@ export function renderFrameToSvg(document: PixelArtDocument, options: RenderOpti
   for (const layer of document.layers) {
     if (layer.visible === false) continue;
     const matrix = frame.layers.find((item) => item.layerId === layer.id)!.pixels;
-    const rects: string[] = [];
-    matrix.forEach((row, y) => row.forEach((color, x) => {
-      if (color !== null) rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`);
-    }));
-    parts.push(`<g data-layer="${escapeXml(layer.id)}" opacity="${layer.opacity ?? 1}">${rects.join("")}</g>`);
+    const pathsByColor = new Map<string, string[]>();
+    matrix.forEach((row, y) => {
+      let start = 0;
+      while (start < row.length) {
+        const color = row[start];
+        if (color === null) { start++; continue; }
+        let end = start + 1;
+        while (end < row.length && row[end] === color) end++;
+        const commands = pathsByColor.get(color) ?? [];
+        const runWidth = end - start;
+        commands.push(`M${start} ${y}h${runWidth}v1h-${runWidth}z`);
+        pathsByColor.set(color, commands);
+        start = end;
+      }
+    });
+    const paths = Array.from(pathsByColor, ([color, commands]) => `<path fill="${color}" d="${commands.join("")}"/>`).join("");
+    parts.push(`<g data-layer="${escapeXml(layer.id)}" opacity="${layer.opacity ?? 1}">${paths}</g>`);
   }
   parts.push("</svg>");
   return parts.join("");
