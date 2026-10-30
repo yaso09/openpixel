@@ -423,7 +423,7 @@ fn update_install() -> anyhow::Result<String> {
     let status = Command::new("sh")
         .args([
             "-c",
-            "set -eu; current=\"v$OPENPIXEL_VERSION\"; latest=$(curl -fsSL https://api.github.com/repos/yaso09/openpixel/releases/latest | sed -n 's/.*\"tag_name\": *\"\([^\"]*\)\".*/\1/p'); if [ -z \"$latest\" ]; then echo 'Could not determine latest OpenPixel release.' >&2; exit 1; fi; if [ \"$latest\" = \"$current\" ]; then echo \"OpenPixel $current is already up to date.\"; exit 0; fi; tmp=$(mktemp); trap 'rm -f \"$tmp\"' EXIT; curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/master/install.sh -o \"$tmp\"; bash \"$tmp\"",
+            r#"set -eu; current="v$OPENPIXEL_VERSION"; latest=$(curl -fsSL https://api.github.com/repos/yaso09/openpixel/releases/latest | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p'); if [[ -z "$latest" ]]; then echo "No release found"; exit 1; fi; if [[ "$current" == "$latest" ]]; then echo "Already up to date"; exit 0; fi; curl -fsSL "https://github.com/yaso09/openpixel/releases/download/$latest/openpixel-linux-x86_64.tar.gz" -o /tmp/openpixel.tar.gz; mkdir -p "$HOME/.local/bin"; tar -xzf /tmp/openpixel.tar.gz -C "$HOME/.local/bin"; chmod +x "$HOME/.local/bin/openpixel"; echo "Updated to $latest""#,
         ])
         .env("OPENPIXEL_VERSION", env!("CARGO_PKG_VERSION"))
         .status()
