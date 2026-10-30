@@ -414,16 +414,18 @@ fn update_install() -> anyhow::Result<String> {
             "-ExecutionPolicy",
             "Bypass",
             "-Command",
-            "irm https://raw.githubusercontent.com/yaso09/openpixel/master/install.ps1 | iex",
+            "$ErrorActionPreference='Stop'; $current='v' + $env:OPENPIXEL_VERSION; $latest=(Invoke-RestMethod 'https://api.github.com/repos/yaso09/openpixel/releases/latest').tag_name; if ($latest -eq $current) { Write-Output \"OpenPixel $current is already up to date.\"; exit 0 }; $tmp=Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString() + '.ps1'); try { Invoke-WebRequest 'https://raw.githubusercontent.com/yaso09/openpixel/master/install.ps1' -OutFile $tmp; & $tmp } finally { Remove-Item $tmp -Force -ErrorAction SilentlyContinue }",
         ])
+        .env("OPENPIXEL_VERSION", env!("CARGO_PKG_VERSION"))
         .status()
         .context("could not start PowerShell installer")?;
     #[cfg(not(windows))]
     let status = Command::new("sh")
         .args([
             "-c",
-            "curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/master/install.sh | bash",
+            "set -eu; current=\"v$OPENPIXEL_VERSION\"; latest=$(curl -fsSL https://api.github.com/repos/yaso09/openpixel/releases/latest | sed -n 's/.*\"tag_name\": *\"\([^\"]*\)\".*/\1/p'); if [ -z \"$latest\" ]; then echo 'Could not determine latest OpenPixel release.' >&2; exit 1; fi; if [ \"$latest\" = \"$current\" ]; then echo \"OpenPixel $current is already up to date.\"; exit 0; fi; tmp=$(mktemp); trap 'rm -f \"$tmp\"' EXIT; curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/master/install.sh -o \"$tmp\"; bash \"$tmp\"",
         ])
+        .env("OPENPIXEL_VERSION", env!("CARGO_PKG_VERSION"))
         .status()
         .context("could not start shell installer")?;
     if !status.success() {
