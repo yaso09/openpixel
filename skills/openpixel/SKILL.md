@@ -48,6 +48,14 @@ Keep transparent art transparent unless the user asks for a backdrop. Use a back
 
 This gate applies to new pixel-art designs and requested visual redesigns. Complete the decision questions and SVG draft review above before building or modifying pixel art. After approval, implement the approved composition and design choices in OpenPixel, then follow the craft workflow and quality gate below. If implementation needs a material change from the approved draft, pause, show an updated SVG draft, and get approval again before applying that change.
 
+### SVG concept quality
+
+Treat the SVG as a deliberate visual concept, not a placeholder made of unrelated shapes. Set a `viewBox` matching the intended canvas proportions, use clear negative space and a focal hierarchy, and organize the composition in named back-to-front groups such as background, midground, subject, and foreground. Give it a descriptive `<title>` when the preview method supports accessible SVG metadata.
+
+Before presenting the draft, render it with an available SVG-capable tool and inspect the rendered image at the size the user will see. Check composition, scale, alignment, silhouette, proportions, overlaps, and palette contrast. Correct visible problems with focused edits and render again; never treat valid SVG markup alone as proof that the draft looks right. For characters and animals, establish the main body silhouette first, then add limbs and features while checking that forms connect naturally. For scenes, build back-to-front and keep supporting areas quieter than the focal subject.
+
+Keep the draft easy to translate into pixel clusters: prefer a few intentional, clear shapes and a restrained palette. Gradients, filters, shadows, and texture are optional; use them only when they clarify the requested concept, and do not let effects obscure the silhouette or imply detail that the approved pixel-art design does not need. These practices adapt the render-inspect-fix loop from [SVG Creator](https://github.com/upbrew-tech/svg-creator-skill/blob/main/SKILL.md) and the canvas, spacing, and SVG organization guidance in [SVG Illustration](https://www.skills.sh/narumiruna/skills/svg-illustration).
+
 ### Style and composition decisions
 
 Choose the pixel density to fit the deliverable instead of treating one style as universal. Use fewer, larger clusters for tiny sprites and icons; use more deliberate material and lighting clusters for large canvases and scenes. Keep the pixel grid crisp at every size. For scenes, establish foreground, focal subject, and background with clear contrast hierarchy. For characters, prioritize pose, silhouette, facing, and proportion before costume detail. For buildings and objects, establish the outer contour and major planes before texture. If a brief mixes subjects, make one the focal subject and arrange the others to support it.
