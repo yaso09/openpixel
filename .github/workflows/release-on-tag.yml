@@ -16,8 +16,55 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out tagged source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog and release notes with OpenCode
+        uses: anomalyco/opencode/github@2c14fc5586fe0b88e5c04732d2e846769cc35671 # pinned OpenCode GitHub Action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"deny","edit":"allow","task":"deny","websearch":"deny","webfetch":"deny"}'
+        with:
+          model: opencode/deepseek-v4.1-flash-free
+          use_github_token: true
+          prompt: |
+            Prepare release documentation for tag ${{ github.ref_name }} using only repository history and files available in this checkout.
+
+            1. Create or update the root CHANGELOG.md. Add a section for this tag at the top, after the title if one exists. Summarize user-facing changes since the previous GitHub release (or all relevant history if there is no previous release). Group items under Added, Changed, Fixed, and Removed only when applicable. Keep older entries intact. Do not invent changes.
+            2. Write concise, user-facing release notes for this tag to release-notes.md. Include only changes since the previous release, grouped by useful headings. Do not include installation instructions or claim anything unsupported by the repository history.
+
+            Edit only CHANGELOG.md and release-notes.md. Do not run shell commands or change any other files.
+
+      - name: Preserve generated release documents
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/openpixel-release"
+          test -s CHANGELOG.md
+          test -s release-notes.md
+          cp CHANGELOG.md "$RUNNER_TEMP/openpixel-release/CHANGELOG.md"
+          cp release-notes.md "$RUNNER_TEMP/openpixel-release/release-notes.md"
+
+      - name: Publish changelog update to default branch
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$DEFAULT_BRANCH"
+          git switch --create release-changelog "origin/$DEFAULT_BRANCH"
+          cp "$RUNNER_TEMP/openpixel-release/CHANGELOG.md" CHANGELOG.md
+          git add CHANGELOG.md
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: update changelog for ${{ github.ref_name }}"
+            git push origin "HEAD:refs/heads/$DEFAULT_BRANCH"
+          fi
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.ref_name }}
-        run: gh release create "$TAG_NAME" --verify-tag --generate-notes --title "$TAG_NAME"
+        run: gh release create "$TAG_NAME" --verify-tag --notes-file "$RUNNER_TEMP/openpixel-release/release-notes.md" --title "$TAG_NAME"
