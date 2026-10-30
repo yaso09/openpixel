@@ -4,12 +4,18 @@ on:
   push:
     tags:
       - '**'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish (for example, v0.1.0)
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -34,6 +40,8 @@ jobs:
     steps:
       - name: Check out tagged source
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -76,28 +84,30 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Download platform packages
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: release-assets
 
+      - name: Install OpenCode CLI
+        run: curl -fsSL https://opencode.ai/install | bash
+
       - name: Generate changelog and release notes with OpenCode
-        uses: anomalyco/opencode/github@2c14fc5586fe0b88e5c04732d2e846769cc35671 # pinned OpenCode GitHub Action
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"deny","edit":"allow","task":"deny","websearch":"deny","webfetch":"deny"}'
-        with:
-          model: opencode/deepseek-v4.1-flash-free
-          use_github_token: true
-          prompt: |
-            Prepare release documentation for tag ${{ github.ref_name }} using only repository history and files available in this checkout.
+          OPENCODE_CONFIG_CONTENT: '{"permission":{"*":"deny","read":"allow","glob":"allow","grep":"allow","list":"allow","edit":"allow","bash":"deny","task":"deny","websearch":"deny","webfetch":"deny"}}'
+          TAG_NAME: ${{ inputs.tag || github.ref_name }}
+        run: |
+          PROMPT="Prepare release documentation for tag $TAG_NAME using only repository history and files available in this checkout.
 
-            1. Create or update the root CHANGELOG.md. Add a section for this tag at the top, after the title if one exists. Summarize user-facing changes since the previous GitHub release (or all relevant history if there is no previous release). Group items under Added, Changed, Fixed, and Removed only when applicable. Keep older entries intact. Do not invent changes.
-            2. Write concise, user-facing release notes for this tag to release-notes.md. Include only changes since the previous release, grouped by useful headings. Do not include installation instructions or claim anything unsupported by the repository history.
+          1. Create or update the root CHANGELOG.md. Add a section for this tag at the top, after the title if one exists. Summarize user-facing changes since the previous GitHub release (or all relevant history if there is no previous release). Group items under Added, Changed, Fixed, and Removed only when applicable. Keep older entries intact. Do not invent changes.
+          2. Write concise, user-facing release notes for this tag to release-notes.md. Include only changes since the previous release, grouped by useful headings. Do not include installation instructions or claim anything unsupported by the repository history.
 
-            Edit only CHANGELOG.md and release-notes.md. Do not run shell commands or change any other files.
+          Edit only CHANGELOG.md and release-notes.md. Do not run shell commands or change any other files."
+          opencode run --standalone --model opencode/deepseek-v4.1-flash-free "$PROMPT"
 
       - name: Preserve generated release documents
         shell: bash
@@ -112,6 +122,7 @@ jobs:
         shell: bash
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          TAG_NAME: ${{ inputs.tag || github.ref_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -120,14 +131,14 @@ jobs:
           cp "$RUNNER_TEMP/openpixel-release/CHANGELOG.md" CHANGELOG.md
           git add CHANGELOG.md
           if ! git diff --cached --quiet; then
-            git commit -m "docs: update changelog for ${{ github.ref_name }}"
+            git commit -m "docs: update changelog for $TAG_NAME"
             git push origin "HEAD:refs/heads/$DEFAULT_BRANCH"
           fi
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ github.ref_name }}
+          TAG_NAME: ${{ inputs.tag || github.ref_name }}
         run: |
           gh release create "$TAG_NAME" --verify-tag --notes-file "$RUNNER_TEMP/openpixel-release/release-notes.md" --title "$TAG_NAME"
           gh release upload "$TAG_NAME" release-assets/*/*
