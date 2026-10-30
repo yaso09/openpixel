@@ -28,6 +28,16 @@ try {
     $env:Path = "$installDir;$env:Path"
     Write-Output "Installed OpenPixel to $installDir"
     Write-Output 'Open a new terminal to use openpixel and openpixel-mcp.'
+
+    if (Get-Command npx -ErrorAction SilentlyContinue) {
+        & npx --yes skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixel-art --global --yes
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning 'OpenPixel tools are installed, but the agent skill could not be installed. Run the skill install command from the README to retry.'
+        }
+    }
+    else {
+        Write-Warning 'Node.js/npm was not found, so the agent skill was skipped. Install Node.js and run: npx skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixel-art --global --yes'
+    }
 }
 finally {
     Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue

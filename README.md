@@ -41,6 +41,16 @@ irm https://raw.githubusercontent.com/yaso09/openpixel/main/install.ps1 | iex
 
 The installers add `openpixel` and `openpixel-mcp`. Bash installs to `~/.local/bin` by default; set `OPENPIXEL_INSTALL_DIR` to choose another location. PowerShell installs to `%LOCALAPPDATA%\OpenPixel\bin` and adds that directory to your user PATH. Open a new terminal after installing on Windows.
 
+### OpenPixel agent skill
+
+Install the pixel art skill for your coding agent with the [Skills CLI](https://skills.sh/):
+
+```bash
+npx skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixel-art
+```
+
+The platform installers also install this skill globally when Node.js/npm is available.
+
 ### TypeScript renderer
 
 ```bash

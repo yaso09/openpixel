@@ -33,6 +33,16 @@ irm https://raw.githubusercontent.com/yaso09/openpixel/main/install.ps1 | iex
 
 İki kurucu da en son GitHub Release'i indirerek `openpixel` ve `openpixel-mcp` araçlarını kurar. Bash kurucusu varsayılan olarak `~/.local/bin` dizinini kullanır; değiştirmek için `OPENPIXEL_INSTALL_DIR` ayarlayın. PowerShell kurucusu `%LOCALAPPDATA%\OpenPixel\bin` dizinine kurar ve kullanıcı PATH'ine ekler.
 
+### OpenPixel ajan becerisi
+
+Piksel çizim becerisini coding agent'ınıza [Skills CLI](https://skills.sh/) ile kurun:
+
+```sh
+npx skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixel-art
+```
+
+Node.js/npm yüklüyse platform kurucuları bu beceriyi de global olarak kurar.
+
 Depo geliştirmesi için kök dizinde:
 
 ```sh

@@ -26,3 +26,11 @@ case ":$PATH:" in
   *":$install_dir:"*) ;;
   *) echo "Add this directory to PATH: $install_dir" ;;
 esac
+
+if command -v npx >/dev/null 2>&1; then
+  if ! npx --yes skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixel-art --global --yes; then
+    echo "OpenPixel tools are installed, but the agent skill could not be installed. Run the skill install command from the README to retry." >&2
+  fi
+else
+  echo "Node.js/npm was not found, so the agent skill was skipped. Install Node.js and run: npx skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixel-art --global --yes" >&2
+fi
