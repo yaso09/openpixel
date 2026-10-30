@@ -9,13 +9,13 @@ OpenPixel, piksel matrisi katmanlarından oluşan resim ve animasyonları oluşt
 - [`openpixel-mcp`](apps/mcp/README.md): stdio ve Streamable HTTP/SSE üzerinden Rust MCP sunucusu; MP4 video dışa aktarımı da sunar.
 - [OpenPixel Pixel Art becerisi](.agents/skills/openpixel-pixel-art/SKILL.md): OpenPixel kullanan ajanlar için kaynaklı çizim ve animasyon yönergeleri.
 
-## Renderer kurulumu
-
-Yayınlandıktan sonra uygulamanıza ekleyin:
+## GitHub üzerinden kurulum
 
 ```sh
-npm install @openpixel/renderer
+npm i -g github:yaso09/openpixel
 ```
+
+TypeScript renderer GitHub deposundan dağıtılır; npm'e yayımlanmayacaktır.
 
 ## CLI ve MCP sunucusunu kurma
 

@@ -5,8 +5,10 @@ TypeScript renderer and browser animation player for OpenPixel v1 JSON assets. I
 ## Install
 
 ```sh
-npm install @openpixel/renderer
+npm i -g github:yaso09/openpixel
 ```
+
+The TypeScript renderer is distributed from the OpenPixel GitHub repository and will not be published to npm.
 
 ## Render an SVG frame
 

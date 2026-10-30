@@ -43,11 +43,11 @@ The installers add `openpixel` and `openpixel-mcp`. Bash installs to `~/.local/b
 ### TypeScript renderer
 
 ```bash
-npm install @openpixel/renderer
+npm i -g github:yaso09/openpixel
 ```
 
 > [!NOTE]
-> npm publication has not been configured yet. The command will work after the first package release; to build from source, follow [Development](#development).
+> The TypeScript renderer is distributed from this GitHub repository and will not be published to npm.
 
 ## Quick start
 
