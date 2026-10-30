@@ -95,7 +95,7 @@ OpenPixel geliştirme aşamasındadır. [Yol haritası](docs/ROADMAP.md) ve [aş
 
 ## GitHub otomasyonları
 
-OpenCode; bakımcı komutlarını, salt okunur issue/PR incelemesini, issue ve düzeltme PR'ı açabilen günlük depo taramasını ve sürüm notlarını yürütür. Bir Git tag'i gönderildiğinde `CHANGELOG.md` güncellenir ve GitHub Release oluşturulur. Dependabot npm, Cargo ve GitHub Actions bağımlılıklarını haftalık kontrol eder. Ayrıntılar için [otomasyon kurulumuna](docs/automation.md) bakın.
+OpenCode; bakımcı komutlarını, salt okunur issue/PR incelemesini ve issue ile düzeltme PR'ı açabilen günlük depo taramasını yürütür. Tag yayınlarında Groq'un ücretsiz planındaki `openai/gpt-oss-120b`, yalnızca uygulama ve paket değişikliklerine dayanarak İngilizce sürüm notları ve `CHANGELOG.md` girdileri üretir; dokümantasyon, workflow ve depo bakımı değişiklikleri dışarıda bırakılır. Aynı notlar GitHub Release'te kullanılır. Ücret oluşmaması için Groq hesabı ücretsiz planda kalmalıdır. Dependabot npm, Cargo ve GitHub Actions bağımlılıklarını haftalık kontrol eder. Ayrıntılar için [otomasyon kurulumuna](docs/automation.md) bakın.
 
 ## Katkı
 

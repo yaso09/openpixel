@@ -145,3 +145,5 @@ The monorepo contains the browser renderer in `packages/pixelart`, the CLI in `a
 ## Automation
 
 OpenCode scans the repository daily for verified defects. It can create up to two issues and open a focused fix PR for each issue it creates. PRs are not merged automatically. See [GitHub automation details](docs/automation.md).
+
+For each release tag, Groq's Free plan runs `openai/gpt-oss-120b` to generate English release notes and update `CHANGELOG.md` using application and package changes only. Documentation, workflow, and other repository maintenance commits are excluded. The same notes appear in the GitHub Release. Keep the Groq account on the Free plan to avoid usage charges.

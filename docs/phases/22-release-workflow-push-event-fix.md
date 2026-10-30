@@ -1,5 +1,7 @@
 # Phase 22 — OpenCode release workflow push-event fix
 
+> This release-note implementation was later replaced by Groq; OpenCode remains in the other repository workflows.
+
 ## Completed
 
 - Replaced `opencode github run` in the tag release workflow with the non-interactive OpenCode CLI, which works for the `push` event.
