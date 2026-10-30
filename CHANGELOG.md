@@ -4,6 +4,15 @@ This file is automatically updated for each release.
 
 ---
 
+
+## [v0.1.1] - 2026-10-30
+
+## Added
+- New `update` command
+- New `version` command
+
+---
+
 ## [v0.1.0] - 2026-10-30
 
 ## Added
