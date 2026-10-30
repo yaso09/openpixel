@@ -1,57 +1,75 @@
-# OpenPixel
+<div align="center">
+  <img src="banner.svg" alt="OpenPixel pixel art landscape" width="100%" />
 
-OpenPixel is a toolkit for creating, editing, and rendering pixel art images and animations. Assets are JSON documents made from ordered pixel-matrix layers and frames. The TypeScript package renders those assets as crisp SVG in browsers; the Rust CLI and MCP server create and edit compatible assets.
+  # OpenPixel
 
-## Packages
+  **Create pixel art with agents. Render it in the browser, export SVGs, or turn animations into MP4.**
 
-- [`@openpixel/renderer`](packages/pixelart/README.md): TypeScript types, validation, SVG frame rendering, and browser animation player.
-- [`openpixel`](apps/cli/README.md): Rust command-line asset authoring, SVG export, and MP4 video encoding.
-- [`openpixel-mcp`](apps/mcp/README.md): Rust MCP server over stdio and Streamable HTTP/SSE, including MP4 video export.
-- [OpenPixel Pixel Art skill](.agents/skills/openpixel-pixel-art/SKILL.md): source-backed drawing and animation guidance for AI agents using OpenPixel.
+  [![TypeScript](https://img.shields.io/badge/renderer-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](packages/pixelart)
+  [![Rust](https://img.shields.io/badge/tools-Rust-000000?style=flat-square&logo=rust&logoColor=white)](apps)
+  [![MIT](https://img.shields.io/badge/license-MIT-8A5CF6?style=flat-square)](LICENSE)
 
-## Install the renderer
+  [Install](#install) · [Quick start](#quick-start) · [Renderer](#typescript-renderer) · [CLI](#cli) · [MCP](#mcp-server) · [Development](#development)
+</div>
 
-After publishing, install it in an application with:
+OpenPixel is a small toolkit for creating and using pixel art images and animations. An asset is a JSON document built from ordered layers of pixel matrices and animation frames. AI agents can author and edit the same format through the CLI or MCP server; the TypeScript library renders it as crisp SVG in a browser.
 
-```sh
-npm install @openpixel/renderer
-```
+## What you can do
 
-## Install the CLI and MCP server
+- Draw and animate layered pixel art in a shared, validated JSON format.
+- Render a still frame or play an animation as SVG in the browser.
+- Create, inspect, validate, and edit assets from the command line or an MCP client.
+- Export each animation frame as SVG or encode timed frames as MP4.
+- Give an AI agent structured tools for creating and refining artwork.
 
-On Linux x86_64 or macOS Apple Silicon:
+## Install
 
-```sh
+### CLI and MCP server
+
+Install the latest GitHub Release on Linux x86_64 or Apple Silicon macOS:
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/main/install.sh | bash
 ```
 
-On Windows x64 PowerShell:
+On Windows x64, run in PowerShell:
 
 ```powershell
 irm https://raw.githubusercontent.com/yaso09/openpixel/main/install.ps1 | iex
 ```
 
-Both installers fetch the latest GitHub Release and install `openpixel` and `openpixel-mcp`. The Bash installer uses `~/.local/bin` by default; set `OPENPIXEL_INSTALL_DIR` to choose another directory. The PowerShell installer installs under `%LOCALAPPDATA%\OpenPixel\bin` and adds it to the user PATH.
+The installers add `openpixel` and `openpixel-mcp`. Bash installs to `~/.local/bin` by default; set `OPENPIXEL_INSTALL_DIR` to choose another location. PowerShell installs to `%LOCALAPPDATA%\OpenPixel\bin` and adds that directory to your user PATH. Open a new terminal after installing on Windows.
 
-For repository development, use npm workspaces:
+### TypeScript renderer
 
-```sh
-npm install
-npm run build
+```bash
+npm install @openpixel/renderer
 ```
 
-The Rust applications build independently from the repository root with Cargo:
+> [!NOTE]
+> npm publication has not been configured yet. The command will work after the first package release; to build from source, follow [Development](#development).
 
-```sh
-cargo build --release --workspace
+## Quick start
+
+Create a layered asset, paint a pixel, then render it to SVG:
+
+```bash
+openpixel new art/creature.json --width 16 --height 16 --name Creature --layers body:Body,details:Details
+openpixel set-pixel art/creature.json --output art/creature-painted.json --frame 0 --layer body --x 7 --y 6 --color '#E96B55'
+openpixel validate art/creature-painted.json
+openpixel render art/creature-painted.json --scale 8 --output out/creature.svg
 ```
 
-## Render an SVG frame
+Edits write to an explicit output path so the source asset stays intact. Coordinates and frame indices start at zero. See [the animated example](examples/two-frame-spark.json) for a complete multi-frame document.
+
+## TypeScript renderer
+
+Render a document directly to SVG:
 
 ```ts
 import { renderToSvg, type PixelArtDocument } from "@openpixel/renderer";
 
-const asset: PixelArtDocument = {
+const art: PixelArtDocument = {
   version: 1,
   name: "One pixel",
   width: 1,
@@ -63,34 +81,52 @@ const asset: PixelArtDocument = {
   }]
 };
 
-document.querySelector("#art")!.innerHTML = renderToSvg(asset, {
+document.querySelector("#art")!.innerHTML = renderToSvg(art, {
   pixelSize: 16,
   title: "A red pixel"
 });
 ```
 
-`mountPixelArt(element, asset)` adds browser playback with `play()`, `pause()`, `seek(frameIndex)`, and `dispose()`. The renderer API and JSON format are described in [packages/pixelart/README.md](packages/pixelart/README.md) and [the v1 schema](schemas/pixel-art.v1.schema.json).
+Use `mountPixelArt(element, art)` for browser playback. The player exposes `play()`, `pause()`, `seek(frameIndex)`, and `dispose()`. See the [renderer guide](packages/pixelart/README.md) and [v1 JSON schema](schemas/pixel-art.v1.schema.json).
 
-## Create an asset with the CLI
+## CLI
 
-```sh
-openpixel new art/creature.json --width 16 --height 16 --name Creature --layers body:Body,details:Details
-openpixel set-pixel art/creature.json --output art/creature-painted.json --frame 0 --layer body --x 7 --y 6 --color '#E96B55'
-openpixel render art/creature-painted.json --scale 8 --output out/creature.svg
+`openpixel` provides commands for asset creation and editing, inspection, validation, SVG frame rendering, and video export. Run `openpixel help` for all arguments.
+
+```bash
+openpixel inspect art/creature.json
+openpixel render-frames art/creature.json --scale 4 --out-dir out/frames
+openpixel render-video art/creature.json --output out/creature.mp4 --fps 30 --scale 4
 ```
 
-## Project status
+MP4 export requires `ffmpeg` with `libx264` available on `PATH`. It follows each frame's `durationMs`; the frame rate can be set from 1 to 60 fps.
 
-OpenPixel is in active development. See the [roadmap](docs/ROADMAP.md) and [phase reports](docs/phases/).
+## MCP server
 
-## GitHub automation
+The Rust MCP server supports stdio for local MCP clients and Streamable HTTP for remote connections. HTTP responses use Server-Sent Events when streaming is needed.
 
-OpenCode handles maintainer commands, read-only issue/PR triage, weekly maintenance reports, and release notes. Pushing a Git tag updates `CHANGELOG.md` and creates a GitHub Release. Dependabot checks npm, Cargo, and GitHub Actions dependencies. See [automation setup](docs/automation.md).
+```bash
+# stdio transport (default)
+openpixel-mcp stdio
 
-## Contributing
+# HTTP transport, listening on localhost:8000
+openpixel-mcp http 127.0.0.1:8000
+```
 
-People and AI-assisted contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before making changes.
+Available tools include `create_asset`, `validate_asset`, `inspect_asset`, `render_frame`, `render_all_frames`, `render_video`, `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, and `set_loop`. See [MCP setup and tool details](apps/mcp/README.md).
 
-## License
+## Asset format
 
-MIT. See [LICENSE](LICENSE).
+OpenPixel documents contain a canvas size, ordered layer definitions, and one or more frames. Each frame stores a two-dimensional color matrix for its layers; `null` represents a transparent pixel. Frame durations drive browser playback and video export. The shared [v1 schema](schemas/pixel-art.v1.schema.json) defines the format used by the renderer, CLI, and MCP server.
+
+## Development
+
+Requirements: Node.js 20 or later and a stable Rust toolchain.
+
+```bash
+npm install
+npm run build
+cargo build --release --workspace
+```
+
+The monorepo contains the browser renderer in `packages/pixelart`, the CLI in `apps/cli`, the MCP server in `apps/mcp`, and shared schemas in `schemas/`. For contribution guidance, see [CONTRIBUTING.md](CONTRIBUTING.md). GitHub Actions creates a release and platform packages for each pushed tag; see [automation details](docs/automation.md).
