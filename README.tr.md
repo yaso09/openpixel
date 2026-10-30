@@ -43,6 +43,17 @@ npx skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixe
 
 Node.js/npm yüklüyse platform kurucuları bu beceriyi de global olarak kurar.
 
+### Ajanlara MCP bağlantısı
+
+OpenPixel kurulduktan sonra aşağıdaki komutlardan birini çalıştırarak MCP sunucusunu Codex'e veya Claude Desktop'a otomatik ekleyin; ardından uygulamayı yeniden başlatın:
+
+```sh
+openpixel-mcp add codex
+openpixel-mcp add claude
+```
+
+Başka bir MCP uyumlu ajan için stdio sunucusu ekleyin: komut `openpixel-mcp`, argüman `stdio`. Dosya konumları ve Claude Desktop için elle yapılandırma örneği [MCP kurulum kılavuzunda](apps/mcp/README.md) bulunur.
+
 Depo geliştirmesi için kök dizinde:
 
 ```sh

@@ -4,6 +4,14 @@ This file is automatically updated for each release.
 
 ---
 
+## [v0.1.3] - 2026-10-30
+
+## Added
+- Add `openpixel-mcp add codex` and `openpixel-mcp add claude` to register OpenPixel with desktop agents.
+- Document MCP setup for Codex, Claude Desktop, and other compatible agents.
+
+---
+
 
 ## [v0.1.1] - 2026-10-30
 

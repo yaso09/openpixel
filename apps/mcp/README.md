@@ -13,6 +13,30 @@ cargo run -p openpixel-mcp -- http 127.0.0.1:8000
 
 `stdio` is the default when no transport is supplied and is intended for MCP clients that launch a child process. The HTTP mode serves MCP at `/mcp`; the bind address is optional and defaults to `127.0.0.1:8000`. `OPENPIXEL_MCP_ADDR` can set the address when no address argument is provided.
 
+## Connect an agent
+
+After installing OpenPixel, run one of these commands to add the local stdio server to the agent's user configuration:
+
+```sh
+openpixel-mcp add codex
+openpixel-mcp add claude
+```
+
+The Codex entry is added to `~/.codex/config.toml`. Claude Desktop uses `%APPDATA%\\Claude\\claude_desktop_config.json` on Windows and `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS. Existing server entries are preserved, and the config stores the full path to the installed executable. Restart the selected app after setup. Keep `openpixel-mcp` at that location; if you configure an agent manually, its command must resolve to the executable.
+
+To configure another MCP-compatible agent manually, register a stdio server with command `openpixel-mcp` and argument `stdio`. For example, Claude Desktop uses:
+
+```json
+{
+  "mcpServers": {
+    "openpixel": {
+      "command": "openpixel-mcp",
+      "args": ["stdio"]
+    }
+  }
+}
+```
+
 The HTTP mode uses the current MCP Streamable HTTP transport. Responses use Server-Sent Events (`text/event-stream`) when streaming is needed; the SDK does not implement the superseded 2024 two-endpoint HTTP+SSE transport. See the [official Rust SDK transport notes](https://github.com/modelcontextprotocol/rust-sdk#transports).
 
 ## Tools

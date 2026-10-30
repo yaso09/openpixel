@@ -126,6 +126,17 @@ openpixel-mcp http 127.0.0.1:8000
 
 Available tools include `create_asset`, `validate_asset`, `inspect_asset`, `render_frame`, `render_all_frames`, `render_video`, `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, and `set_loop`. See [MCP setup and tool details](apps/mcp/README.md).
 
+### Connect Codex or Claude Desktop
+
+After installing OpenPixel, run the matching command to register the local MCP server automatically, then restart the app:
+
+```bash
+openpixel-mcp add codex
+openpixel-mcp add claude
+```
+
+For another MCP-compatible agent, add a stdio server with command `openpixel-mcp` and argument `stdio`. See the [MCP setup guide](apps/mcp/README.md) for a manual configuration example and config file locations.
+
 ## Asset format
 
 OpenPixel documents contain a canvas size, ordered layer definitions, and one or more frames. Each frame stores a two-dimensional color matrix for its layers; `null` represents a transparent pixel. Frame durations drive browser playback and video export. The shared [v1 schema](schemas/pixel-art.v1.schema.json) defines the format used by the renderer, CLI, and MCP server.

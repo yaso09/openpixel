@@ -455,10 +455,19 @@ impl ServerHandler for OpenPixelServer {
 async fn main() -> Result<()> {
     let mut args = env::args().skip(1);
     let transport = args.next().unwrap_or_else(|| "stdio".into());
+    if transport == "add" {
+        let client = args.next().ok_or_else(|| anyhow::anyhow!("missing agent (codex or claude)"))?;
+        if args.next().is_some() { anyhow::bail!("unexpected extra arguments"); }
+        return match client.as_str() {
+            "codex" => add_codex(),
+            "claude" => add_claude(),
+            _ => anyhow::bail!("unknown agent '{client}'. Choose 'codex' or 'claude'."),
+        };
+    }
     match transport.as_str() {
         "stdio" => {
             if args.next().is_some() {
-                anyhow::bail!("usage: openpixel-mcp [stdio|http]");
+                anyhow::bail!("usage: openpixel-mcp [stdio|http|add]");
             }
             let service = OpenPixelServer::new()
                 .serve(rmcp::transport::stdio())
@@ -488,7 +497,67 @@ async fn main() -> Result<()> {
                 })
                 .await?;
         }
-        _ => anyhow::bail!("usage: openpixel-mcp [stdio|http [host:port]]"),
+        _ => anyhow::bail!("usage: openpixel-mcp [stdio|http [host:port]|add <codex|claude>]"),
     }
+    Ok(())
+}
+
+fn config_home() -> Result<std::path::PathBuf> {
+    #[cfg(windows)]
+    let base = env::var_os("USERPROFILE").map(std::path::PathBuf::from);
+    #[cfg(not(windows))]
+    let base = env::var_os("HOME").map(std::path::PathBuf::from);
+    base.ok_or_else(|| anyhow::anyhow!("could not determine the user home directory"))
+}
+
+fn server_executable() -> Result<String> {
+    Ok(env::current_exe()?.to_string_lossy().into_owned())
+}
+
+fn add_codex() -> Result<()> {
+    let path = config_home()?.join(".codex").join("config.toml");
+    if let Some(parent) = path.parent() { std::fs::create_dir_all(parent)?; }
+    let mut config = if path.exists() {
+        std::fs::read_to_string(&path).with_context(|| format!("could not read {}", path.display()))?
+    } else { String::new() };
+    let section = "[mcp_servers.openpixel]";
+    if config.lines().any(|line| line.trim() == section) {
+        println!("OpenPixel MCP is already configured in {}", path.display());
+        return Ok(());
+    }
+    if !config.is_empty() && !config.ends_with('\n') { config.push('\n'); }
+    if !config.is_empty() { config.push('\n'); }
+    config.push_str("[mcp_servers.openpixel]\ncommand = ");
+    config.push_str(&serde_json::to_string(&server_executable()?)?);
+    config.push_str("\nargs = [\"stdio\"]\n");
+    std::fs::write(&path, config).with_context(|| format!("could not write {}", path.display()))?;
+    println!("Added OpenPixel MCP to {}. Restart Codex to connect.", path.display());
+    Ok(())
+}
+
+fn add_claude() -> Result<()> {
+    #[cfg(windows)]
+    let path = env::var_os("APPDATA").map(std::path::PathBuf::from).ok_or_else(|| anyhow::anyhow!("APPDATA is not set"))?.join("Claude").join("claude_desktop_config.json");
+    #[cfg(target_os = "macos")]
+    let path = config_home()?.join("Library/Application Support/Claude/claude_desktop_config.json");
+    #[cfg(all(not(windows), not(target_os = "macos")))]
+    let path = config_home()?.join(".config/Claude/claude_desktop_config.json");
+    if let Some(parent) = path.parent() { std::fs::create_dir_all(parent)?; }
+    let mut config: serde_json::Value = if path.exists() {
+        serde_json::from_slice(&std::fs::read(&path).with_context(|| format!("could not read {}", path.display()))?)
+            .with_context(|| format!("{} is not valid JSON", path.display()))?
+    } else { serde_json::json!({}) };
+    let root = config.as_object_mut().ok_or_else(|| anyhow::anyhow!("{} must contain a JSON object", path.display()))?;
+    let servers = root.entry("mcpServers").or_insert_with(|| serde_json::json!({}));
+    let servers = servers.as_object_mut().ok_or_else(|| anyhow::anyhow!("mcpServers in {} must be an object", path.display()))?;
+    if servers.contains_key("openpixel") {
+        println!("OpenPixel MCP is already configured in {}", path.display());
+        return Ok(());
+    }
+    servers.insert("openpixel".into(), serde_json::json!({"command":server_executable()? ,"args":["stdio"]}));
+    let mut output = serde_json::to_string_pretty(&config)?;
+    output.push('\n');
+    std::fs::write(&path, output).with_context(|| format!("could not write {}", path.display()))?;
+    println!("Added OpenPixel MCP to {}. Restart Claude Desktop to connect.", path.display());
     Ok(())
 }
