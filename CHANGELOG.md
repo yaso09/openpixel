@@ -5,6 +5,14 @@ This file is automatically updated for each release.
 ---
 
 
+## [v0.1.2] - 2026-10-30
+
+## Fixed
+- Updated installer shell scripts to use raw strings, fixing quoting issues during updates.  
+- The updater now correctly skips the update process when the application is already at the latest version.
+
+---
+
 ## [v0.1.1] - 2026-10-30
 
 ## Added
