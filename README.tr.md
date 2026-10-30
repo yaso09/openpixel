@@ -69,7 +69,7 @@ OpenPixel geliştirme aşamasındadır. [Yol haritası](docs/ROADMAP.md) ve [aş
 
 ## GitHub otomasyonları
 
-OpenCode, bakımcı komutlarını, salt okunur issue/PR incelemesini ve haftalık bakım raporunu yürütür. Dependabot npm, Cargo ve GitHub Actions bağımlılıklarını haftalık kontrol eder. Ayrıntılar için [otomasyon kurulumuna](docs/automation.md) bakın.
+OpenCode, bakımcı komutlarını, salt okunur issue/PR incelemesini ve haftalık bakım raporunu yürütür. Bir Git tag'i gönderildiğinde otomatik sürüm notlarıyla GitHub Release oluşturulur. Dependabot npm, Cargo ve GitHub Actions bağımlılıklarını haftalık kontrol eder. Ayrıntılar için [otomasyon kurulumuna](docs/automation.md) bakın.
 
 ## Katkı
 

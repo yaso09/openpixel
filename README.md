@@ -69,7 +69,7 @@ OpenPixel is in active development. See the [roadmap](docs/ROADMAP.md) and [phas
 
 ## GitHub automation
 
-OpenCode handles maintainer commands, read-only issue/PR triage, and a weekly maintenance report. Dependabot checks npm, Cargo, and GitHub Actions dependencies. See [automation setup](docs/automation.md).
+OpenCode handles maintainer commands, read-only issue/PR triage, and a weekly maintenance report. Pushing a Git tag automatically creates a GitHub Release with generated notes. Dependabot checks npm, Cargo, and GitHub Actions dependencies. See [automation setup](docs/automation.md).
 
 ## Contributing
 
