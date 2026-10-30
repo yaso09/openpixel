@@ -141,3 +141,7 @@ cargo build --release --workspace
 ```
 
 The monorepo contains the browser renderer in `packages/pixelart`, the CLI in `apps/cli`, the MCP server in `apps/mcp`, and shared schemas in `schemas/`. For contribution guidance, see [CONTRIBUTING.md](CONTRIBUTING.md). GitHub Actions creates a release and platform packages for each pushed tag; see [automation details](docs/automation.md).
+
+## Automation
+
+OpenCode scans the repository daily for verified defects. It can create up to two issues and open a focused fix PR for each issue it creates. PRs are not merged automatically. See [GitHub automation details](docs/automation.md).

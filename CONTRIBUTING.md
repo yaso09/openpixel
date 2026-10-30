@@ -61,4 +61,4 @@ AI tools may help with implementation, documentation, and review. The submitting
 - Disclose significant AI assistance when the repository host or contribution policy asks for it.
 - Never include secrets, user data, or private repository contents in prompts or commits.
 
-OpenCode automation is a helper. Its issue triage and scheduled review are read-only; automated PR review is limited to same-repository branches. Maintainers make final decisions about labels, approval, merge, and release. See [GitHub automation setup](docs/automation.md) for tokens and workflow permissions.
+OpenCode automation is a helper. Daily scans may create issues and focused fix PRs for verified defects; automatic PR review and issue triage remain read-only. Maintainers make final decisions about labels, approval, merge, and release. See [GitHub automation setup](docs/automation.md) for tokens and workflow permissions.

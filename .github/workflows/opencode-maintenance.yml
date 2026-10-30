@@ -1,35 +1,47 @@
-name: Weekly OpenCode maintenance review
+name: Daily OpenCode repository scan
 
 on:
   schedule:
-    - cron: '20 9 * * 1'
+    - cron: '20 9 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: read
-  issues: read
-  pull-requests: read
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: opencode-daily-scan
+  cancel-in-progress: false
 
 jobs:
-  review:
+  scan:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Review open issues and pull requests
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure Git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Scan repository, create issues, and prepare fixes
         uses: anomalyco/opencode/github@2c14fc5586fe0b88e5c04732d2e846769cc35671 # pinned OpenCode GitHub Action
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"deny","edit":"deny","task":"deny","websearch":"deny","webfetch":"deny"}'
+          OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"allow","edit":"allow","task":"allow","websearch":"deny","webfetch":"deny"}'
         with:
           model: opencode/gpt-5.6-luna
           use_github_token: true
           prompt: |
-            Review the repository's open issues and pull requests for maintainers.
-            Summarize duplicates, missing reproduction details, stale discussions, blocked reviews, and the most actionable next items.
-            This is a read-only report: do not edit files, run shell commands, comment on or modify GitHub items, assign, close, approve, merge, or open pull requests.
-            Put the report in the workflow output only.
+            Perform a daily engineering scan of this repository. Inspect source code, tests, schemas, workflows, and documentation for concrete defects that can be demonstrated from the repository. Ignore style preferences, speculative concerns, and feature requests.
+
+            For each candidate, check existing open issues and pull requests to avoid duplicates or overlapping work. Create a GitHub issue only for a verified, actionable defect. Include evidence, impact, reproduction details when available, and clear acceptance criteria. Limit this run to the two highest-priority verified defects.
+
+            For each issue you create during this run, implement the smallest focused fix and open a separate pull request that references the issue with `Fixes #NUMBER`. Verify the fix with relevant checks or tests, and include what you ran in the PR description. Do not create a PR for an issue that existed before this run. Keep each PR limited to its issue. Do not merge, approve, close, or assign issues or PRs.
+
+            If no verified defects are found, make no changes and report that briefly in the workflow output. Never invent a defect to satisfy the task.
