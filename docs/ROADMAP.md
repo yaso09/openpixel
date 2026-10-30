@@ -29,4 +29,4 @@ Katman matrislerinden oluşan JSON dosyalarını SVG üzerinde çizen TypeScript
 
 ## Şimdiki durum
 
-Aşama 1–8 tamamlandı. Renderer, Rust CLI/MCP, npm paketi, iki dilli belgeler, katkı rehberi, OpenCode Go otomasyonları ve OpenPixel Pixel Art ajan becerisi hazır. Aşama raporları `docs/phases/` altındadır. npm yayını ve GitHub Actions secret kurulumu depo sahibinin yayın yapılandırmasında tamamlanacak.
+Aşama 1–8 tamamlandı. Renderer, Rust CLI/MCP, npm paketi, iki dilli belgeler, katkı rehberi, OpenCode Zen otomasyonları ve OpenPixel Pixel Art ajan becerisi hazır. Aşama raporları `docs/phases/` altındadır. npm yayını ve GitHub Actions secret kurulumu depo sahibinin yayın yapılandırmasında tamamlanacak.

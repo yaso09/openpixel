@@ -26,7 +26,7 @@ jobs:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENCODE_PERMISSION: '{"*":"deny","read":"allow","glob":"allow","grep":"allow","bash":"deny","edit":"deny","task":"deny","websearch":"deny","webfetch":"deny"}'
         with:
-          model: opencode-go/gpt-5.6-luna
+          model: opencode/gpt-5.6-luna
           use_github_token: true
           prompt: |
             Review the repository's open issues and pull requests for maintainers.

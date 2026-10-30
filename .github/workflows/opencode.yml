@@ -40,6 +40,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
-          model: opencode-go/gpt-5.6-luna
+          model: opencode/gpt-5.6-luna
           mentions: /opencode,/oc
           use_github_token: true
