@@ -17,6 +17,22 @@ Yayınlandıktan sonra uygulamanıza ekleyin:
 npm install @openpixel/renderer
 ```
 
+## CLI ve MCP sunucusunu kurma
+
+Linux x86_64 veya Apple Silicon Mac'te:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/main/install.sh | bash
+```
+
+Windows x64 PowerShell'de:
+
+```powershell
+irm https://raw.githubusercontent.com/yaso09/openpixel/main/install.ps1 | iex
+```
+
+İki kurucu da en son GitHub Release'i indirerek `openpixel` ve `openpixel-mcp` araçlarını kurar. Bash kurucusu varsayılan olarak `~/.local/bin` dizinini kullanır; değiştirmek için `OPENPIXEL_INSTALL_DIR` ayarlayın. PowerShell kurucusu `%LOCALAPPDATA%\OpenPixel\bin` dizinine kurar ve kullanıcı PATH'ine ekler.
+
 Depo geliştirmesi için kök dizinde:
 
 ```sh

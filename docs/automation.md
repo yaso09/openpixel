@@ -1,6 +1,6 @@
 # GitHub automation
 
-OpenPixel uses OpenCode GitHub workflows for maintainer-requested tasks, read-only pull request reviews, issue triage, a weekly backlog report, and release documentation. Pushing any Git tag runs OpenCode with the free `opencode/deepseek-v4.1-flash-free` model to update `CHANGELOG.md` and draft release notes; the workflow commits the changelog update to the default branch and uses those notes for the GitHub Release. Dependabot checks npm, Cargo, and GitHub Actions dependencies weekly. GitHub documents the `/` directory and weekly interval for Actions updates in its [Dependabot setup guide](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/auto-update-actions).
+OpenPixel uses OpenCode GitHub workflows for maintainer-requested tasks, read-only pull request reviews, issue triage, a weekly backlog report, and release documentation. Pushing any Git tag builds CLI/MCP packages for Linux x86_64, macOS Apple Silicon, and Windows x64, then runs OpenCode with the free `opencode/deepseek-v4.1-flash-free` model to update `CHANGELOG.md` and draft release notes. The workflow commits the changelog update to the default branch and attaches the platform packages to the GitHub Release. Dependabot checks npm, Cargo, and GitHub Actions dependencies weekly. GitHub documents the `/` directory and weekly interval for Actions updates in its [Dependabot setup guide](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/auto-update-actions).
 
 ## Setup
 
@@ -16,7 +16,7 @@ The `opencode.yml` command workflow listens to `/opencode` and `/oc` comments on
 
 `opencode-triage.yml` provides a concise summary on new issues opened by an owner, member, or collaborator. The weekly `opencode-maintenance.yml` report inspects open issues and pull requests and writes a report to the Actions run output. It also supports manual runs from the Actions tab.
 
-`release-on-tag.yml` runs for every pushed tag. OpenCode updates the root `CHANGELOG.md` and writes `release-notes.md` based on repository history. The workflow commits the changelog update to the repository's default branch and creates a GitHub Release named after the tag using the generated notes. It uses the `OPENCODE_API_KEY` Actions secret and the repository-scoped `contents: write` permission. Create and push a tag with `git tag vX.Y.Z` followed by `git push origin vX.Y.Z` to publish a release.
+`release-on-tag.yml` runs for every pushed tag. It builds CLI and MCP binaries for supported platforms, then OpenCode updates the root `CHANGELOG.md` and writes `release-notes.md` based on repository history. The workflow commits the changelog update to the repository's default branch and creates a GitHub Release named after the tag using the generated notes and binary packages. It uses the `OPENCODE_API_KEY` Actions secret and the repository-scoped `contents: write` permission. Create and push a tag with `git tag vX.Y.Z` followed by `git push origin vX.Y.Z` to publish a release.
 
 ## Workflow changes
 

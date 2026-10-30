@@ -17,6 +17,22 @@ After publishing, install it in an application with:
 npm install @openpixel/renderer
 ```
 
+## Install the CLI and MCP server
+
+On Linux x86_64 or macOS Apple Silicon:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/main/install.sh | bash
+```
+
+On Windows x64 PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/yaso09/openpixel/main/install.ps1 | iex
+```
+
+Both installers fetch the latest GitHub Release and install `openpixel` and `openpixel-mcp`. The Bash installer uses `~/.local/bin` by default; set `OPENPIXEL_INSTALL_DIR` to choose another directory. The PowerShell installer installs under `%LOCALAPPDATA%\OpenPixel\bin` and adds it to the user PATH.
+
 For repository development, use npm workspaces:
 
 ```sh
