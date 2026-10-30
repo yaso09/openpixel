@@ -2,7 +2,7 @@
 
 ## Tamamlananlar
 
-- `.agents/skills/openpixel-pixel-art/SKILL.md` içinde OpenPixel JSON v1, CLI, MCP ve TypeScript renderer ile çalışan üretim/iyileştirme/animasyon becerisi oluşturuldu.
+- `skills/openpixel/SKILL.md` içinde OpenPixel JSON v1, CLI, MCP ve TypeScript renderer ile çalışan üretim/iyileştirme/animasyon becerisi oluşturuldu.
 - Sağlam çizim akışı siluet ve şekil bloklamasından palet, cluster, gölgeleme ve kare hareketine; sonrasında teknik ve görsel kalite kapısına uzanıyor.
 - Beceri gerçek ürün sınırlarını belgeliyor: kare başına tam boyutlu layer matrisleri, sıfır tabanlı koordinatlar, 1–60000 ms süreler, tek loop bayrağı, SVG frame dışa aktarımı ve yerleşik video encoder bulunmaması.
 - Güncel JSON şeması ve MCP/CLI/API kaynak kodu incelendi; pixel-art tekniği kaynakları ile mevcut yerel Pixel Art, Professional ve Animator becerilerinden yararlı ilkeler sentezlendi.

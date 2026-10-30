@@ -21,6 +21,7 @@ OpenPixel is a small toolkit for creating and using pixel art images and animati
 - Create, inspect, validate, and edit assets from the command line or an MCP client.
 - Export each animation frame as SVG or encode timed frames as MP4.
 - Give an AI agent structured tools for creating and refining artwork.
+- Follow the [OpenPixel pixel art skill](skills/openpixel/SKILL.md) for agent drawing workflows and quality checks.
 
 ## Install
 
