@@ -3,8 +3,9 @@ $ProgressPreference = 'SilentlyContinue'
 
 $repo = 'yaso09/openpixel'
 $installDir = if ($env:OPENPIXEL_INSTALL_DIR) { $env:OPENPIXEL_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA 'OpenPixel\bin' }
-$arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
-if ($arch -ne 'X64') { throw "Unsupported architecture: $arch. OpenPixel currently provides Windows x64 releases." }
+$arch = $env:PROCESSOR_ARCHITECTURE
+if ($env:PROCESSOR_ARCHITEW6432) { $arch = $env:PROCESSOR_ARCHITEW6432 }
+if ($arch -notin @('AMD64', 'x64')) { throw "Unsupported architecture: $arch. OpenPixel currently provides Windows x64 releases." }
 
 $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/latest"
 $asset = $release.assets | Where-Object { $_.name -eq 'openpixel-windows-x86_64.zip' } | Select-Object -First 1

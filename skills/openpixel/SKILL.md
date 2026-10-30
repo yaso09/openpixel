@@ -40,6 +40,30 @@ Keep transparent art transparent unless the user asks for a backdrop. Use a back
 
 ## Craft workflow
 
+### Style and composition decisions
+
+Choose the pixel density to fit the deliverable instead of treating one style as universal. Use fewer, larger clusters for tiny sprites and icons; use more deliberate material and lighting clusters for large canvases and scenes. Keep the pixel grid crisp at every size. For scenes, establish foreground, focal subject, and background with clear contrast hierarchy. For characters, prioritize pose, silhouette, facing, and proportion before costume detail. For buildings and objects, establish the outer contour and major planes before texture. If a brief mixes subjects, make one the focal subject and arrange the others to support it.
+
+When a user provides a visual reference, extract broad traits such as palette temperature, contrast, density, and mood, then create an original arrangement. Do not copy a distinctive composition or imitate a named living artist. Keep typography and logos out of pixel matrices unless explicitly requested; text is usually clearer as a separate SVG or HTML layer.
+
+### Palette, color, and shading
+
+Treat palette size as a design choice, not a universal target. Start with a few role-based colors: outline or deepest shadow, shadow, local color, light, and optional accent. Add colors only when they separate forms, describe material, or improve the focal hierarchy. Check value separation in grayscale and make the silhouette readable against its background. Reuse colors across materials to unify the image.
+
+Build short ramps from shadow through midtone to highlight. Hue shifting can make ramps more lively: shadows may move cooler and highlights warmer, depending on the scene's light. Keep the light direction consistent across objects and frames. Prefer broad, hard-edged planes and selective highlights. Avoid pure black outlines and pure white highlights unless the style calls for them.
+
+Use dithering selectively for a specific texture or transition. Ordered patterns such as Bayer can create controlled retro texture; error-diffusion patterns can soften a transition but may introduce visual noise. In hand-authored OpenPixel matrices, place dither clusters deliberately and keep them localized. Do not apply a blanket dither or automatic quantization to clean pixel clusters. Avoid checkerboard shading, banding, pillow shading, muddy near-duplicate colors, and scattered single-pixel noise. Anti-aliasing is optional and should be used sparingly; preserve crisp edges and omit it on tiny sprites when it blurs the silhouette.
+
+### Refinement passes
+
+When polishing an existing asset, inspect it at native size first, then enlarge it with crisp integer scaling. Work in this order: silhouette and composition; cluster shape and contour rhythm; value contrast and palette; lighting and shading; material texture; single-pixel accents. Remove pixels that do not improve recognition, depth, material, or mood. Check for stray pixels, broken contours, uneven stair steps, accidental tangencies, inconsistent outline thickness, and merges between adjacent forms. If a requested palette limit is given, honor it exactly and count distinct opaque colors after editing.
+
+### Animation planning
+
+Plan animation with readable key poses before adding in-between frames. Typical actions need anticipation, action/contact, and recovery, but use only the poses the motion needs. Small idle loops can use two or three frames; walk and run cycles often need four to eight; these are starting points, not requirements. Use frame durations to control emphasis: hold a readable pose longer, and keep impacts or quick transitions brief. Do not assume a fixed FPS or equal timing unless requested.
+
+Keep scale, pivot, contact points, volume, palette, silhouette identity, and light direction consistent across frames. Animate only the layers that need to move; keep static layers identical across frames. A loop should transition cleanly from the last frame back to the first. OpenPixel v1 has ordered frames, per-frame durations, and one global loop flag; it does not support animation tags, linked cels, or onion-skin metadata. Do not promise or add those features. For sprite sheets or GIF/video exports, use only supported OpenPixel outputs and available external encoders, and state any format limitation.
+
 ### 1. Plan the image at thumbnail scale
 
 Write a one-line subject statement and identify the focal point. Decide on a clear silhouette, view angle, canvas footprint, and a simple foreground/midground/background plan if it is a scene. Reserve negative space around important forms. Check that the subject remains identifiable as a single dark shape before adding details.
