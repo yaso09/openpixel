@@ -8,7 +8,7 @@ use rmcp::{
     ServiceExt,
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, env, net::SocketAddr};
+use std::{collections::BTreeMap, env, net::SocketAddr, process::Command};
 
 #[derive(Clone)]
 struct OpenPixelServer {
@@ -142,6 +142,16 @@ impl OpenPixelServer {
         Self {
             tool_router: Self::tool_router(),
         }
+    }
+
+    #[tool(description = "Return the installed OpenPixel MCP server version.")]
+    fn version(&self) -> Result<CallToolResult, McpError> {
+        finish(Ok(format!("OpenPixel MCP {}", env!("CARGO_PKG_VERSION"))))
+    }
+
+    #[tool(description = "Download and install the latest OpenPixel CLI and MCP release using the official platform installer. Restart the MCP server after updating.")]
+    fn update(&self) -> Result<CallToolResult, McpError> {
+        finish(update_install())
     }
 
     #[tool(
@@ -394,6 +404,32 @@ impl OpenPixelServer {
             write_doc(&args.output_path, &doc).map(|_| format!("Looping set to {}", args.enabled))
         }))
     }
+}
+
+fn update_install() -> anyhow::Result<String> {
+    #[cfg(windows)]
+    let status = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            "irm https://raw.githubusercontent.com/yaso09/openpixel/master/install.ps1 | iex",
+        ])
+        .status()
+        .context("could not start PowerShell installer")?;
+    #[cfg(not(windows))]
+    let status = Command::new("sh")
+        .args([
+            "-c",
+            "curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/master/install.sh | bash",
+        ])
+        .status()
+        .context("could not start shell installer")?;
+    if !status.success() {
+        anyhow::bail!("OpenPixel update installer failed with {status}");
+    }
+    Ok("Latest OpenPixel release installed. Restart the MCP server to use the updated binary.".into())
 }
 
 fn finish(result: anyhow::Result<String>) -> Result<CallToolResult, McpError> {

@@ -46,6 +46,14 @@ fn run() -> Result<()> {
         "add-frame" => add_frame_command(args)?,
         "set-frame" => set_frame_command(args)?,
         "set-loop" => set_loop_command(args)?,
+        "version" | "--version" | "-V" => {
+            reject_extra(&args)?;
+            println!("{}", env!("CARGO_PKG_VERSION"));
+        }
+        "update" => {
+            reject_extra(&args)?;
+            update_command()?;
+        }
         other => bail!("unknown command '{other}'. Run `openpixel help` for usage."),
     }
     Ok(())
@@ -55,6 +63,8 @@ fn print_help() {
         "OpenPixel — pixel art asset tools\n\
 Usage: openpixel <command> [options]\n\
 Commands:\n\
+  version                                 Show the installed version\n\
+  update                                  Install the latest release\n\
   new <file> --width N --height N [--name NAME] [--layers id[:name],...]\n\
   validate <file>                         Validate a v1 JSON asset\n\
   inspect <file>                          Show asset, frame, layer, and palette info\n\
@@ -69,6 +79,20 @@ Commands:\n\
   help                                    Show this help\n\
 \nAll pixel coordinates are zero-based. Layer list order defines back-to-front drawing order."
     );
+}
+fn update_command() -> Result<()> {
+    #[cfg(windows)]
+    let status = process::Command::new("powershell")
+        .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "irm https://raw.githubusercontent.com/yaso09/openpixel/master/install.ps1 | iex"])
+        .status()
+        .context("could not start PowerShell installer")?;
+    #[cfg(not(windows))]
+    let status = process::Command::new("sh")
+        .args(["-c", "curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/master/install.sh | bash"])
+        .status()
+        .context("could not start shell installer")?;
+    if !status.success() { bail!("OpenPixel update installer failed with {status}"); }
+    Ok(())
 }
 fn required_pos(args: &mut Vec<String>, label: &str) -> Result<String> {
     if args.is_empty() {
