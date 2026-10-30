@@ -1,6 +1,6 @@
 ---
 name: openpixel-pixel-art
-description: Create, refine, and animate readable pixel art in OpenPixel JSON, using its TypeScript renderer, Rust CLI, or MCP. Use when an agent needs to author an OpenPixel image or animation, improve pixel clusters, silhouette, palette, shading, or frame timing, or turn a visual brief into valid OpenPixel assets.
+description: Create, refine, and animate readable pixel art in OpenPixel. Use for image and animation work that starts with decision questions and an SVG concept draft for user approval before pixel-art implementation.
 ---
 
 # OpenPixel Pixel Art Craft
@@ -9,7 +9,11 @@ Create deliberate, readable pixel art and animations that work in OpenPixel's ac
 
 ## First: understand the deliverable
 
-Extract the subject, action, mood, intended use, canvas size, transparency/background needs, palette constraints, and whether the output is a still or an animation. Preserve exact user constraints. If a critical choice is missing, use a sensible default and state it briefly; ask only when the missing choice changes the deliverable materially.
+Before creating or changing pixel art, ask the user a concise set of decision questions covering any unspecified or ambiguous choices: subject/action, canvas size, composition or pose, mood/style, palette, background/transparency, intended use, and still versus animation. Do not ask them to repeat details they already gave. If the brief already settles these choices, ask a brief confirmation question about the proposed direction. Wait for answers when they affect the design.
+
+Once the direction is clear, make a standalone SVG concept sketch at the intended aspect ratio and canvas proportions. For animation, show the key poses as a small SVG storyboard. Keep this sketch distinct from the OpenPixel artwork: use broad silhouettes and composition shapes, not pixel matrices or a finished pixel-grid rendering. Present the actual SVG preview to the user with a short summary and ask whether they approve it or want changes. Do not create or edit the OpenPixel JSON, pixel matrices, or final artwork until the user explicitly approves the SVG draft.
+
+If the user wants changes or does not approve the draft, revise the SVG and present it again, then ask for approval. Repeat this draft-and-review cycle until approval is explicit. A request to begin the project is not approval of a draft the user has not seen. If the environment cannot display SVG inline, provide the available preview or file path clearly and wait for the user's review; do not claim they have seen it.
 
 Use the exact requested canvas dimensions. Otherwise choose a compact canvas suited to the subject and its smallest necessary features; 16x16, 24x24, and 32x32 are useful starting points, not rules. Keep a one-pixel feature only when it survives inspection at native size. Leave transparent negative space when it helps the silhouette.
 
@@ -39,6 +43,10 @@ The example matrix is abbreviated: every layer matrix must contain exactly `heig
 Keep transparent art transparent unless the user asks for a backdrop. Use a background layer only when the background is part of the artwork. Use separate layers for parts that need independent visibility or different animation, not for every shading color. The renderer uses crisp SVG edges; it does not blur or smooth pixels for you.
 
 ## Craft workflow
+
+### Draft and approval gate
+
+This gate applies to new pixel-art designs and requested visual redesigns. Complete the decision questions and SVG draft review above before building or modifying pixel art. After approval, implement the approved composition and design choices in OpenPixel, then follow the craft workflow and quality gate below. If implementation needs a material change from the approved draft, pause, show an updated SVG draft, and get approval again before applying that change.
 
 ### Style and composition decisions
 
