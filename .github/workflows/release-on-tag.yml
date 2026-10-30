@@ -156,9 +156,12 @@ jobs:
         shell: bash
         env:
           TAG_NAME: ${{ inputs.tag || github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
+          git fetch origin "$DEFAULT_BRANCH"
           python3 - <<'PY'
           import os
+          import subprocess
           from datetime import date
           from pathlib import Path
 
@@ -167,7 +170,20 @@ jobs:
           entry = f"## [{tag}] - {date.today().isoformat()}\n\n{notes}"
           changelog = Path("CHANGELOG.md")
 
-          if not changelog.exists():
+          branch_changelog = subprocess.run(
+              ["git", "show", "FETCH_HEAD:CHANGELOG.md"],
+              check=False, capture_output=True, text=True,
+          )
+          if branch_changelog.returncode == 0:
+              existing = branch_changelog.stdout
+          elif changelog.exists():
+              existing = changelog.read_text(encoding="utf-8")
+          else:
+              existing = ""
+
+          if f"## [{tag}]" in existing:
+              content = existing
+          elif not existing:
               content = (
                   "# Changelog\n\n"
                   "This file is automatically updated for each release.\n\n"
@@ -175,7 +191,6 @@ jobs:
                   f"{entry}\n"
               )
           else:
-              existing = changelog.read_text(encoding="utf-8")
               header, separator, history = existing.partition("\n---\n")
               if separator:
                   content = f"{header}{separator}\n\n{entry}\n\n---\n\n{history.lstrip()}"
@@ -204,15 +219,16 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           TAG_NAME: ${{ inputs.tag || github.ref_name }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin "$DEFAULT_BRANCH"
-          git switch --create release-changelog "origin/$DEFAULT_BRANCH"
-          cp "$RUNNER_TEMP/openpixel-release/CHANGELOG.md" CHANGELOG.md
-          git add CHANGELOG.md
-          if ! git diff --cached --quiet; then
-            git commit -m "docs: update changelog for $TAG_NAME"
-            git push origin "HEAD:refs/heads/$DEFAULT_BRANCH"
+          publish_dir="$RUNNER_TEMP/openpixel-release-branch"
+          git worktree add --detach "$publish_dir" "origin/$DEFAULT_BRANCH"
+          git -C "$publish_dir" config user.name "github-actions[bot]"
+          git -C "$publish_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp "$RUNNER_TEMP/openpixel-release/CHANGELOG.md" "$publish_dir/CHANGELOG.md"
+          git -C "$publish_dir" add CHANGELOG.md
+          if ! git -C "$publish_dir" diff --cached --quiet; then
+            git -C "$publish_dir" commit -m "docs: update changelog for $TAG_NAME"
+            git -C "$publish_dir" push origin "HEAD:refs/heads/$DEFAULT_BRANCH"
           fi
 
       - name: Create GitHub Release
