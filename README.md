@@ -30,13 +30,13 @@ OpenPixel is a small toolkit for creating and using pixel art images and animati
 Install the latest GitHub Release on Linux x86_64 or Apple Silicon macOS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/master/install.sh | bash
 ```
 
 On Windows x64, run in PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/yaso09/openpixel/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/yaso09/openpixel/master/install.ps1 | iex
 ```
 
 The installers add `openpixel` and `openpixel-mcp`. Bash installs to `~/.local/bin` by default; set `OPENPIXEL_INSTALL_DIR` to choose another location. PowerShell installs to `%LOCALAPPDATA%\OpenPixel\bin` and adds that directory to your user PATH. Open a new terminal after installing on Windows.

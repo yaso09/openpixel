@@ -22,13 +22,13 @@ TypeScript renderer GitHub deposundan dağıtılır; npm'e yayımlanmayacaktır.
 Linux x86_64 veya Apple Silicon Mac'te:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yaso09/openpixel/master/install.sh | bash
 ```
 
 Windows x64 PowerShell'de:
 
 ```powershell
-irm https://raw.githubusercontent.com/yaso09/openpixel/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/yaso09/openpixel/master/install.ps1 | iex
 ```
 
 İki kurucu da en son GitHub Release'i indirerek `openpixel` ve `openpixel-mcp` araçlarını kurar. Bash kurucusu varsayılan olarak `~/.local/bin` dizinini kullanır; değiştirmek için `OPENPIXEL_INSTALL_DIR` ayarlayın. PowerShell kurucusu `%LOCALAPPDATA%\OpenPixel\bin` dizinine kurar ve kullanıcı PATH'ine ekler.
