@@ -41,11 +41,13 @@ The HTTP mode uses the current MCP Streamable HTTP transport. Responses use Serv
 
 ## Tools
 
-- `create_asset`, `validate_asset`, `inspect_asset`
+- `version`, `update`, `create_asset`, `validate_asset`, `inspect_asset`
 - `render_frame`, `render_all_frames`, `render_video`
 - `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, `set_loop`
 
 `render_video` writes an H.264 MP4 to the requested `output_path`, follows frame durations, and accepts optional `fps` and pixel `scale` values. It requires ffmpeg with `libx264` available on `PATH`.
+
+The `update` tool accepts optional `force: true` to reinstall the latest release when the MCP server is already on that version. Restart the server after updating.
 
 All modifications take a source `path` and explicit `output_path`, so the caller decides whether to create a new file or update in place. SVG rendering returns SVG content directly as tool text; video rendering writes the binary MP4 to the explicit destination. MCP tool failures return visible tool errors, while malformed protocol parameters are rejected through the MCP error channel.
 

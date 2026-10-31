@@ -110,6 +110,8 @@ openpixel render-frames art/creature.json --scale 4 --out-dir out/frames
 openpixel render-video art/creature.json --output out/creature.mp4 --fps 30 --scale 4
 ```
 
+Run `openpixel update` to install a newer release, or `openpixel update --force` to reinstall the latest release even when the current version is already installed.
+
 MP4 export requires `ffmpeg` with `libx264` available on `PATH`. It follows each frame's `durationMs`; the frame rate can be set from 1 to 60 fps.
 
 ## MCP server
@@ -124,7 +126,7 @@ openpixel-mcp stdio
 openpixel-mcp http 127.0.0.1:8000
 ```
 
-Available tools include `create_asset`, `validate_asset`, `inspect_asset`, `render_frame`, `render_all_frames`, `render_video`, `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, and `set_loop`. See [MCP setup and tool details](apps/mcp/README.md).
+Available tools include `version`, `update`, `create_asset`, `validate_asset`, `inspect_asset`, `render_frame`, `render_all_frames`, `render_video`, `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, and `set_loop`. Set `force: true` on the MCP `update` tool to reinstall the latest release when already current. See [MCP setup and tool details](apps/mcp/README.md).
 
 ### Connect Codex or Claude Desktop
 

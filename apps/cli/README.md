@@ -16,7 +16,10 @@ openpixel validate assets/hero-ready.json
 openpixel render assets/hero-ready.json --frame 1 --scale 8 --title 'Hero, frame 2' --output out/hero.svg
 openpixel render-frames assets/hero-ready.json --scale 4 --out-dir out/hero-frames
 openpixel render-video assets/hero-walk.json --output out/hero.mp4 --fps 30 --scale 4
+openpixel update --force
 ```
+
+`openpixel update` installs the latest release when a newer version is available. Add `--force` to reinstall the latest release even when the installed version is already current.
 
 Commands write to an explicit output path so edits do not silently overwrite the source. `new` creates transparent matrices; `set-pixel` accepts `null` to erase a pixel. Frame indices and coordinates are zero-based. SVG exports preserve layer order, visibility, opacity, transparent pixels, and sharp pixel edges. MP4 export follows each frame's `durationMs`; `--fps` sets the output frame rate (1–60, default 30), and `--scale` sets integer pixel enlargement (1–16, default 1).
 
