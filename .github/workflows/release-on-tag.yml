@@ -28,7 +28,7 @@ jobs:
             target: x86_64-unknown-linux-gnu
             package: openpixel-linux-x86_64.tar.gz
             extension: tar.gz
-          - os: macos-14
+          - os: macos-15
             target: aarch64-apple-darwin
             package: openpixel-macos-aarch64.tar.gz
             extension: tar.gz
