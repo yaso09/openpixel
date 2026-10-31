@@ -7,6 +7,9 @@ use std::{
     process::{Command, Stdio},
 };
 
+mod update;
+pub use update::update_binaries;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Document {

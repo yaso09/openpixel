@@ -87,24 +87,13 @@ Commands:\n\
     );
 }
 fn update_command(force: bool) -> Result<()> {
-    #[cfg(windows)]
-    let status = process::Command::new("powershell")
-        .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "$ErrorActionPreference='Stop'; $current='v' + $env:OPENPIXEL_VERSION; $latest=(Invoke-RestMethod 'https://api.github.com/repos/yaso09/openpixel/releases/latest').tag_name; if (($latest -eq $current) -and $env:OPENPIXEL_FORCE -ne '1') { Write-Output \"OpenPixel $current is already up to date.\"; exit 0 }; $tmp=Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString() + '.ps1'); try { Invoke-WebRequest 'https://raw.githubusercontent.com/yaso09/openpixel/master/install.ps1' -OutFile $tmp; & $tmp } finally { Remove-Item $tmp -Force -ErrorAction SilentlyContinue }"])
-        .env("OPENPIXEL_VERSION", env!("CARGO_PKG_VERSION"))
-        .env("OPENPIXEL_FORCE", if force { "1" } else { "0" })
-        .status()
-        .context("could not start PowerShell installer")?;
-    #[cfg(not(windows))]
-    let status = process::Command::new("sh")
-        .args([
-            "-c",
-            r#"set -eu; current="v$OPENPIXEL_VERSION"; latest=$(curl -fsSL https://api.github.com/repos/yaso09/openpixel/releases/latest | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p'); if [ -z "$latest" ]; then echo "No release found"; exit 1; fi; if [ "$current" = "$latest" ] && [ "$OPENPIXEL_FORCE" != "1" ]; then echo "Already up to date"; exit 0; fi; curl -fsSL "https://github.com/yaso09/openpixel/releases/download/$latest/openpixel-linux-x86_64.tar.gz" -o /tmp/openpixel.tar.gz; mkdir -p "$HOME/.local/bin"; tar -xzf /tmp/openpixel.tar.gz -C "$HOME/.local/bin"; chmod +x "$HOME/.local/bin/openpixel"; echo "Updated to $latest""#,
-        ])
-        .env("OPENPIXEL_VERSION", env!("CARGO_PKG_VERSION"))
-        .env("OPENPIXEL_FORCE", if force { "1" } else { "0" })
-        .status()
-        .context("could not start shell installer")?;
-    if !status.success() { bail!("OpenPixel update installer failed with {status}"); }
+    println!("{}", openpixel_cli::update_binaries(
+        "openpixel",
+        "openpixel-mcp",
+        env!("CARGO_PKG_VERSION"),
+        force,
+        false,
+    )?);
     Ok(())
 }
 fn required_pos(args: &mut Vec<String>, label: &str) -> Result<String> {
