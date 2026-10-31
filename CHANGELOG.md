@@ -4,6 +4,16 @@ This file is automatically updated for each release.
 
 ---
 
+## [v0.2.0] - 2026-10-31
+
+## Added
+- Add `--force` to CLI and MCP update commands so users can reinstall the current version.
+
+## Changed
+- Use the `self_update` Rust dependency for binary updates.
+
+---
+
 ## [v0.1.3] - 2026-10-30
 
 ## Added
