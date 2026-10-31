@@ -12,6 +12,7 @@
   "scripts": {
     "build": "npm run build --workspace @openpixel/renderer",
     "build:www": "npm run build && node www/build.mjs",
-    "pack:renderer": "npm pack --workspace @openpixel/renderer"
+    "pack:renderer": "npm pack --workspace @openpixel/renderer",
+    "release:dry": "node scripts/semantic-release.mjs --dry-run"
   }
 }

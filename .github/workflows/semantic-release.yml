@@ -1,0 +1,35 @@
+name: Semantic version and release
+
+on:
+  push:
+    branches: [master, alpha, beta]
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: semantic-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Analyze commits and create a semantic version
+        run: node scripts/semantic-release.mjs
+
+      - name: Start the binary release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="$(git tag --points-at HEAD --list 'v*' | sort -V | tail -n 1)"
+          if [[ -n "$tag" ]]; then
+            gh workflow run release-on-tag.yml --ref master --field "tag=$tag"
+          fi

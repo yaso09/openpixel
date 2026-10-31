@@ -155,6 +155,10 @@ cargo build --release --workspace
 
 The monorepo contains the browser renderer in `packages/pixelart`, the CLI in `apps/cli`, the MCP server in `apps/mcp`, and shared schemas in `schemas/`. For contribution guidance, see [CONTRIBUTING.md](CONTRIBUTING.md). GitHub Actions creates a release and platform packages for each pushed tag; see [automation details](docs/automation.md).
 
+## Versioning and releases
+
+Releases use Semantic Versioning and Conventional Commits. On `master`, `feat:` creates a minor release, `fix:`/`perf:`/`refactor:` create a patch release, and a `BREAKING CHANGE:` footer or `!` suffix creates a major release. `docs:`, `style:`, `test:`, `build:`, `ci:`, and `chore:` commits do not release. Use `npm run release:dry` to preview the next version and notes locally. Pushes on `alpha` and `beta` create prereleases. Each release synchronizes the npm and Cargo manifests, updates `CHANGELOG.md`, tags `vMAJOR.MINOR.PATCH` (with `-alpha.N` or `-beta.N` on prerelease branches), and starts the platform binary packaging workflow.
+
 ## Automation
 
 OpenCode scans the repository daily for verified defects. It can create up to two issues and open a focused fix PR for each issue it creates. PRs are not merged automatically. See [GitHub automation details](docs/automation.md).
