@@ -4,6 +4,14 @@ This file is automatically updated for each release.
 
 ---
 
+## [v0.4.0] - 2026-11-01
+
+## Added
+- Open a revision comparison window after edits with side-by-side, overlay, and pixel-diff views for stills and animation frames.
+- Add `openpixel compare` and MCP `compare_assets` to compare saved artwork revisions.
+
+---
+
 ## [v0.3.0] - 2026-11-01
 
 ## Added
