@@ -4,6 +4,13 @@ This file is automatically updated for each release.
 
 ---
 
+## [v0.3.0] - 2026-11-01
+
+## Added
+- Track artwork edit revisions across CLI and MCP operations, starting new assets at revision 1 and reporting revisions during inspection.
+
+---
+
 ## [v0.2.0] - 2026-10-31
 
 ## Added

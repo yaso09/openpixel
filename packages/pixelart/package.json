@@ -1,6 +1,6 @@
 {
   "name": "@openpixel/renderer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "TypeScript SVG renderer and browser animation player for OpenPixel assets",
   "private": true,
   "license": "MIT",
