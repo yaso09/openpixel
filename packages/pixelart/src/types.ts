@@ -19,6 +19,8 @@ export interface PixelFrame {
 }
 
 export interface PixelArtDocument {
+  /** Artwork edit sequence; omitted legacy files are interpreted as revision 1. */
+  revision?: number;
   version: 1;
   name?: string;
   width: number;

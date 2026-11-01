@@ -14,6 +14,8 @@ pub use update::update_binaries;
 #[serde(deny_unknown_fields)]
 pub struct Document {
     pub version: u32,
+    #[serde(default = "initial_revision")]
+    pub revision: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     pub width: usize,
@@ -50,6 +52,9 @@ pub struct FrameLayer {
 fn default_true() -> bool {
     true
 }
+fn initial_revision() -> u64 {
+    1
+}
 fn default_opacity() -> f32 {
     1.0
 }
@@ -64,6 +69,9 @@ pub fn read_doc(path: &str) -> Result<Document> {
 pub fn validate(doc: &Document) -> Result<()> {
     if doc.version != 1 {
         bail!("version must be 1");
+    }
+    if doc.revision == 0 {
+        bail!("revision must be at least 1");
     }
     if !(1..=4096).contains(&doc.width) || !(1..=2304).contains(&doc.height) {
         bail!("width must be from 1 to 4096 and height from 1 to 2304");
@@ -140,6 +148,14 @@ pub fn validate(doc: &Document) -> Result<()> {
             bail!("frame {frame_index} must contain every layer exactly once");
         }
     }
+    Ok(())
+}
+/// Advance the saved artwork revision after a successful content edit.
+pub fn advance_revision(doc: &mut Document) -> Result<()> {
+    doc.revision = doc
+        .revision
+        .checked_add(1)
+        .context("artwork revision is too large to increment")?;
     Ok(())
 }
 pub fn valid_color(color: &str) -> bool {

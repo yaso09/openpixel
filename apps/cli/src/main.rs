@@ -1,7 +1,7 @@
 use anyhow::{bail, Context, Result};
 use openpixel_cli::{
-    export_mp4, read_doc, render_svg, valid_color, validate, write_doc, Document, Frame,
-    FrameLayer, Layer,
+    advance_revision, export_mp4, read_doc, render_svg, valid_color, validate, write_doc, Document,
+    Frame, FrameLayer, Layer,
 };
 use std::{collections::BTreeMap, env, fs, path::Path, process};
 
@@ -149,6 +149,7 @@ fn inspect(doc: &Document) -> Result<()> {
         doc.frames.len(),
         doc.looping
     );
+    println!("artwork revision: {}", doc.revision);
     for layer in &doc.layers {
         println!(
             "  layer {} ({}) visible={} opacity={}",
@@ -275,6 +276,7 @@ fn new_command(mut args: Vec<String>) -> Result<()> {
         .collect();
     let doc = Document {
         version: 1,
+        revision: 1,
         name,
         width,
         height,
@@ -287,7 +289,10 @@ fn new_command(mut args: Vec<String>) -> Result<()> {
     };
     validate(&doc)?;
     write_doc(&output, &doc)?;
-    println!("Created {}x{} asset at {output}", width, height);
+    println!(
+        "Created {}x{} asset at {output} (revision {})",
+        width, height, doc.revision
+    );
     Ok(())
 }
 fn set_pixel_command(mut args: Vec<String>) -> Result<()> {
@@ -323,8 +328,12 @@ fn set_pixel_command(mut args: Vec<String>) -> Result<()> {
         }
         Some(color)
     };
+    advance_revision(&mut doc)?;
     write_doc(&output, &doc)?;
-    println!("Updated pixel ({x},{y}) in frame {frame_index}, layer {layer_id}");
+    println!(
+        "Updated pixel ({x},{y}) in frame {frame_index}, layer {layer_id}; artwork revision {}",
+        doc.revision
+    );
     Ok(())
 }
 fn set_layer_command(mut args: Vec<String>) -> Result<()> {
@@ -357,8 +366,12 @@ fn set_layer_command(mut args: Vec<String>) -> Result<()> {
     if let Some(opacity) = opacity {
         layer.opacity = opacity;
     }
+    advance_revision(&mut doc)?;
     write_doc(&output, &doc)?;
-    println!("Updated layer {layer_id}");
+    println!(
+        "Updated layer {layer_id}; artwork revision {}",
+        doc.revision
+    );
     Ok(())
 }
 fn set_loop_command(mut args: Vec<String>) -> Result<()> {
@@ -368,8 +381,12 @@ fn set_loop_command(mut args: Vec<String>) -> Result<()> {
     reject_extra(&args)?;
     let mut doc = read_doc(&input)?;
     doc.looping = enabled;
+    advance_revision(&mut doc)?;
     write_doc(&output, &doc)?;
-    println!("Looping set to {enabled}");
+    println!(
+        "Looping set to {enabled}; artwork revision {}",
+        doc.revision
+    );
     Ok(())
 }
 fn parse_bool(value: &str) -> Result<bool> {
@@ -401,11 +418,13 @@ fn add_frame_command(mut args: Vec<String>) -> Result<()> {
         .clone();
     frame.duration_ms = duration;
     doc.frames.push(frame);
+    advance_revision(&mut doc)?;
     validate(&doc)?;
     write_doc(&output, &doc)?;
     println!(
-        "Added frame {} from source frame {source}",
-        doc.frames.len() - 1
+        "Added frame {} from source frame {source}; artwork revision {}",
+        doc.frames.len() - 1,
+        doc.revision
     );
     Ok(())
 }
@@ -425,9 +444,13 @@ fn set_frame_command(mut args: Vec<String>) -> Result<()> {
         .get_mut(frame_index)
         .context("frame index is outside the asset")?;
     frame.duration_ms = duration_ms;
+    advance_revision(&mut doc)?;
     validate(&doc)?;
     write_doc(&output, &doc)?;
-    println!("Set frame {frame_index} duration to {duration_ms} ms");
+    println!(
+        "Set frame {frame_index} duration to {duration_ms} ms; artwork revision {}",
+        doc.revision
+    );
     Ok(())
 }
 fn reject_extra(args: &[String]) -> Result<()> {

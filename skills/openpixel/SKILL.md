@@ -26,6 +26,7 @@ Read the local schema and examples when present: `schemas/pixel-art.v1.schema.js
 ```json
 {
   "version": 1,
+  "revision": 1,
   "name": "Ember moth",
   "width": 16,
   "height": 16,
@@ -39,6 +40,8 @@ Read the local schema and examples when present: `schemas/pixel-art.v1.schema.js
 ```
 
 The example matrix is abbreviated: every layer matrix must contain exactly `height` rows, each with exactly `width` entries. Use `null` for transparency and `#RRGGBB` (or schema-supported `#RRGGBBAA`) for pixels. Each frame contains one matrix for every declared layer, keyed by its exact `layerId`. Layer array order is back to front. IDs use letters, digits, `_`, or `-`. Frame durations are integer milliseconds from 1 through 60000. Coordinates and frame indexes are zero-based.
+
+`version: 1` identifies the document schema. `revision` tracks edits to this artwork: start new assets at 1. CLI and MCP edit tools increment it automatically; when directly rewriting an existing JSON asset, preserve its revision and increment it once for the edit. Treat legacy assets without `revision` as revision 1, and do not reset a revision during refinements.
 
 Keep transparent art transparent unless the user asks for a backdrop. Use a background layer only when the background is part of the artwork. Use separate layers for parts that need independent visibility or different animation, not for every shading color. The renderer uses crisp SVG edges; it does not blur or smooth pixels for you.
 

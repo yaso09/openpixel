@@ -49,6 +49,6 @@ The HTTP mode uses the current MCP Streamable HTTP transport. Responses use Serv
 
 The `update` tool accepts optional `force: true` to reinstall the latest release when the MCP server is already on that version. Restart the server after updating.
 
-All modifications take a source `path` and explicit `output_path`, so the caller decides whether to create a new file or update in place. SVG rendering returns SVG content directly as tool text; video rendering writes the binary MP4 to the explicit destination. MCP tool failures return visible tool errors, while malformed protocol parameters are rejected through the MCP error channel.
+All modifications take a source `path` and explicit `output_path`, so the caller decides whether to create a new file or update in place. New assets start at `revision: 1`; each successful edit tool increments the artwork revision, and `inspect_asset` reports it. Legacy assets without a revision are treated as revision 1. This is distinct from `version: 1`, which identifies the document schema. SVG rendering returns SVG content directly as tool text; video rendering writes the binary MP4 to the explicit destination. MCP tool failures return visible tool errors, while malformed protocol parameters are rejected through the MCP error channel.
 
 The tool schemas and descriptions are generated from Rust parameter types and list through the MCP `tools/list` method.

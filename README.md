@@ -82,6 +82,7 @@ import { renderToSvg, type PixelArtDocument } from "@openpixel/renderer";
 
 const art: PixelArtDocument = {
   version: 1,
+  revision: 1,
   name: "One pixel",
   width: 1,
   height: 1,
@@ -141,7 +142,7 @@ For another MCP-compatible agent, add a stdio server with command `openpixel-mcp
 
 ## Asset format
 
-OpenPixel documents contain a canvas size, ordered layer definitions, and one or more frames. Each frame stores a two-dimensional color matrix for its layers; `null` represents a transparent pixel. Frame durations drive browser playback and video export. The shared [v1 schema](schemas/pixel-art.v1.schema.json) defines the format used by the renderer, CLI, and MCP server.
+OpenPixel documents contain a schema `version`, an artwork `revision`, canvas size, ordered layer definitions, and one or more frames. The schema version remains `1`; each newly created artwork starts at revision `1`, and successful CLI/MCP edits increment its revision. Legacy files without `revision` are treated as revision `1`. CLI `inspect` and MCP `inspect_asset` display the current revision. Each frame stores a two-dimensional color matrix for its layers; `null` represents a transparent pixel. Frame durations drive browser playback and video export. The shared [v1 schema](schemas/pixel-art.v1.schema.json) defines the format used by the renderer, CLI, and MCP server.
 
 ## Development
 

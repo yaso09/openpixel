@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use openpixel_cli::{
-    export_mp4, read_doc, render_svg, write_doc, Document, Frame, FrameLayer, Layer,
+    advance_revision, export_mp4, read_doc, render_svg, write_doc, Document, Frame, FrameLayer,
+    Layer,
 };
 use rmcp::{
     handler::server::router::tool::ToolRouter, handler::server::wrapper::Parameters, model::*,
@@ -163,7 +164,7 @@ impl OpenPixelServer {
     }
 
     #[tool(
-        description = "Create a transparent OpenPixel v1 asset with ordered layers and one frame."
+        description = "Create a transparent OpenPixel v1 asset at artwork revision 1, with ordered layers and one frame."
     )]
     fn create_asset(
         &self,
@@ -197,6 +198,7 @@ impl OpenPixelServer {
             .collect();
         let doc = Document {
             version: 1,
+            revision: 1,
             name: args.name,
             width: args.width,
             height: args.height,
@@ -209,8 +211,8 @@ impl OpenPixelServer {
         };
         finish(write_doc(&args.path, &doc).map(|_| {
             format!(
-                "Created {}x{} asset at {}",
-                args.width, args.height, args.path
+                "Created {}x{} asset at {} (revision {})",
+                args.width, args.height, args.path, doc.revision
             )
         }))
     }
@@ -239,7 +241,17 @@ impl OpenPixelServer {
         finish(read_doc(&args.path).map(|doc| {
             let mut palette = BTreeMap::<String, usize>::new();
             for frame in &doc.frames { for layer in &frame.layers { for row in &layer.pixels { for pixel in row { if let Some(color) = pixel { *palette.entry(color.clone()).or_default() += 1; } } } } }
-            serde_json::to_string_pretty(&serde_json::json!({"name": doc.name, "width": doc.width, "height": doc.height, "loop": doc.looping, "layers": doc.layers, "frames": doc.frames.iter().enumerate().map(|(index, frame)| serde_json::json!({"index": index, "durationMs": frame.duration_ms})).collect::<Vec<_>>(), "palette": palette})).unwrap_or_else(|_| "{}".into())
+            serde_json::to_string_pretty(&serde_json::json!({
+                "name": doc.name,
+                "revision": doc.revision,
+                "width": doc.width,
+                "height": doc.height,
+                "loop": doc.looping,
+                "layers": doc.layers,
+                "frames": doc.frames.iter().enumerate().map(|(index, frame)| serde_json::json!({"index": index, "durationMs": frame.duration_ms})).collect::<Vec<_>>(),
+                "palette": palette
+            }))
+            .unwrap_or_else(|_| "{}".into())
         }))
     }
     #[tool(
@@ -305,7 +317,7 @@ impl OpenPixelServer {
         }))
     }
     #[tool(
-        description = "Set a pixel to a hex color or null for transparency and write the result to output_path."
+        description = "Set a pixel to a hex color or null for transparency, increment the artwork revision, and write the result to output_path."
     )]
     fn set_pixel(
         &self,
@@ -332,15 +344,16 @@ impl OpenPixelServer {
                 }
                 Some(args.color)
             };
+            advance_revision(&mut doc)?;
             write_doc(&args.output_path, &doc).map(|_| {
                 format!(
-                    "Updated pixel ({},{}) in frame {}",
-                    args.x, args.y, args.frame_index
+                    "Updated pixel ({},{}) in frame {}; artwork revision {}",
+                    args.x, args.y, args.frame_index, doc.revision
                 )
             })
         }))
     }
-    #[tool(description = "Change layer name, visibility, and/or opacity in an OpenPixel asset.")]
+    #[tool(description = "Change layer name, visibility, and/or opacity in an OpenPixel asset and increment its artwork revision.")]
     fn set_layer(
         &self,
         Parameters(args): Parameters<SetLayerArgs>,
@@ -363,10 +376,16 @@ impl OpenPixelServer {
             if let Some(opacity) = args.opacity {
                 layer.opacity = opacity;
             }
-            write_doc(&args.output_path, &doc).map(|_| format!("Updated layer {}", args.layer_id))
+            advance_revision(&mut doc)?;
+            write_doc(&args.output_path, &doc).map(|_| {
+                format!(
+                    "Updated layer {}; artwork revision {}",
+                    args.layer_id, doc.revision
+                )
+            })
         }))
     }
-    #[tool(description = "Duplicate a frame to the end of the animation with a chosen duration.")]
+    #[tool(description = "Duplicate a frame to the end of the animation with a chosen duration and increment the artwork revision.")]
     fn add_frame(
         &self,
         Parameters(args): Parameters<AddFrameArgs>,
@@ -380,11 +399,18 @@ impl OpenPixelServer {
                 .clone();
             frame.duration_ms = args.duration_ms.unwrap_or(100);
             doc.frames.push(frame);
+            advance_revision(&mut doc)?;
             write_doc(&args.output_path, &doc)
-                .map(|_| format!("Added frame {}", doc.frames.len() - 1))
+                .map(|_| {
+                    format!(
+                        "Added frame {}; artwork revision {}",
+                        doc.frames.len() - 1,
+                        doc.revision
+                    )
+                })
         }))
     }
-    #[tool(description = "Change the duration of an existing frame in milliseconds.")]
+    #[tool(description = "Change the duration of an existing frame in milliseconds and increment the artwork revision.")]
     fn set_frame_duration(
         &self,
         Parameters(args): Parameters<SetFrameArgs>,
@@ -394,22 +420,29 @@ impl OpenPixelServer {
                 .get_mut(args.frame_index)
                 .context("frame index is outside the asset")?
                 .duration_ms = args.duration_ms;
+            advance_revision(&mut doc)?;
             write_doc(&args.output_path, &doc).map(|_| {
                 format!(
-                    "Set frame {} duration to {} ms",
-                    args.frame_index, args.duration_ms
+                    "Set frame {} duration to {} ms; artwork revision {}",
+                    args.frame_index, args.duration_ms, doc.revision
                 )
             })
         }))
     }
-    #[tool(description = "Enable or disable looping for an OpenPixel animation.")]
+    #[tool(description = "Enable or disable looping for an OpenPixel animation and increment the artwork revision.")]
     fn set_loop(
         &self,
         Parameters(args): Parameters<SetLoopArgs>,
     ) -> Result<CallToolResult, McpError> {
         finish(read_doc(&args.path).and_then(|mut doc| {
             doc.looping = args.enabled;
-            write_doc(&args.output_path, &doc).map(|_| format!("Looping set to {}", args.enabled))
+            advance_revision(&mut doc)?;
+            write_doc(&args.output_path, &doc).map(|_| {
+                format!(
+                    "Looping set to {}; artwork revision {}",
+                    args.enabled, doc.revision
+                )
+            })
         }))
     }
 }
@@ -437,7 +470,7 @@ impl ServerHandler for OpenPixelServer {
     fn get_info(&self) -> ServerConfig {
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(Implementation::new("openpixel-mcp", env!("CARGO_PKG_VERSION")))
-            .with_instructions("OpenPixel tools create, inspect, validate, edit, and render pixel art assets in the shared v1 JSON format. File edits use explicit output paths.")
+            .with_instructions("OpenPixel tools create, inspect, validate, edit, and render pixel art assets in the shared v1 JSON format. New assets start at revision 1; each edit tool increments the artwork revision and reports it. File edits use explicit output paths.")
     }
 }
 

@@ -8,6 +8,7 @@
   "required": ["version", "width", "height", "layers", "frames"],
   "properties": {
     "version": { "const": 1 },
+    "revision": { "type": "integer", "minimum": 1, "default": 1, "description": "Artwork edit revision. Older documents without this property are treated as revision 1." },
     "name": { "type": "string", "minLength": 1 },
     "width": { "type": "integer", "minimum": 1, "maximum": 4096 },
     "height": { "type": "integer", "minimum": 1, "maximum": 2304 },

@@ -1,6 +1,6 @@
 # OpenPixel
 
-OpenPixel, piksel matrisi katmanlarından oluşan resim ve animasyonları oluşturmak, düzenlemek ve görüntülemek için bir araç takımıdır. TypeScript paketi JSON varlıklarını tarayıcıda keskin SVG olarak çizer; Rust CLI ve MCP sunucusu aynı biçimde varlıklar üretir ve düzenler.
+OpenPixel, piksel matrisi katmanlarından oluşan resim ve animasyonları oluşturmak, düzenlemek ve görüntülemek için bir araç takımıdır. TypeScript paketi JSON varlıklarını tarayıcıda keskin SVG olarak çizer; Rust CLI ve MCP sunucusu aynı biçimde varlıklar üretir ve düzenler. Her yeni çizim `revision: 1` ile başlar; CLI veya MCP üzerinden başarılı düzenlemeler revision numarasını artırır. Eski dosyalarda bu alan yoksa revision `1` kabul edilir. CLI `inspect` ve MCP `inspect_asset` güncel numarayı gösterir. `version: 1` ise dosya şema sürümünü belirtir ve çizim revision’ından ayrıdır.
 
 ## Paketler
 

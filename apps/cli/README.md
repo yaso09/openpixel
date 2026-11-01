@@ -21,7 +21,7 @@ openpixel update --force
 
 `openpixel update` installs the latest release when a newer version is available. Add `--force` to reinstall the latest release even when the installed version is already current.
 
-Commands write to an explicit output path so edits do not silently overwrite the source. `new` creates transparent matrices; `set-pixel` accepts `null` to erase a pixel. Frame indices and coordinates are zero-based. SVG exports preserve layer order, visibility, opacity, transparent pixels, and sharp pixel edges. MP4 export follows each frame's `durationMs`; `--fps` sets the output frame rate (1–60, default 30), and `--scale` sets integer pixel enlargement (1–16, default 1).
+Commands write to an explicit output path so edits do not silently overwrite the source. Each new asset starts at `revision: 1`; every successful edit command increments its revision, and `inspect` displays it. Existing files without a revision are treated as revision 1. This artwork revision is separate from the format's `version: 1`. `new` creates transparent matrices; `set-pixel` accepts `null` to erase a pixel. Frame indices and coordinates are zero-based. SVG exports preserve layer order, visibility, opacity, transparent pixels, and sharp pixel edges. MP4 export follows each frame's `durationMs`; `--fps` sets the output frame rate (1–60, default 30), and `--scale` sets integer pixel enlargement (1–16, default 1).
 
 ## Feature coverage
 
