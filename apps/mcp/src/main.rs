@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use openpixel_cli::{
-    advance_revision, export_mp4, read_doc, render_svg, write_doc, Document, Frame, FrameLayer,
-    Layer,
+    advance_revision, export_mp4, open_compare_window, read_doc, render_svg, write_doc, Document,
+    Frame, FrameLayer, Layer,
 };
 use rmcp::{
     handler::server::router::tool::ToolRouter, handler::server::wrapper::Parameters, model::*,
@@ -20,6 +20,13 @@ struct OpenPixelServer {
 struct PathArgs {
     /// Existing OpenPixel JSON asset path
     path: String,
+}
+#[derive(Clone, Debug, Deserialize, JsonSchema)]
+struct CompareArgs {
+    /// Previous OpenPixel asset revision
+    previous_path: String,
+    /// Current OpenPixel asset revision
+    current_path: String,
 }
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 struct CreateArgs {
@@ -254,6 +261,18 @@ impl OpenPixelServer {
             .unwrap_or_else(|_| "{}".into())
         }))
     }
+    #[tool(description = "Open a comparison window for two OpenPixel asset revisions with side-by-side, overlay, and pixel-diff views.")]
+    fn compare_assets(
+        &self,
+        Parameters(args): Parameters<CompareArgs>,
+    ) -> Result<CallToolResult, McpError> {
+        finish(
+            read_doc(&args.previous_path).and_then(|previous| {
+                let current = read_doc(&args.current_path)?;
+                open_compare_window(&previous, &current)
+            }),
+        )
+    }
     #[tool(
         description = "Render a selected frame as crisp SVG text using the OpenPixel renderer options."
     )]
@@ -324,6 +343,7 @@ impl OpenPixelServer {
         Parameters(args): Parameters<SetPixelArgs>,
     ) -> Result<CallToolResult, McpError> {
         finish(read_doc(&args.path).and_then(|mut doc| {
+            let previous = doc.clone();
             if args.x >= doc.width || args.y >= doc.height {
                 anyhow::bail!("coordinates are outside the canvas");
             }
@@ -345,12 +365,13 @@ impl OpenPixelServer {
                 Some(args.color)
             };
             advance_revision(&mut doc)?;
-            write_doc(&args.output_path, &doc).map(|_| {
-                format!(
-                    "Updated pixel ({},{}) in frame {}; artwork revision {}",
-                    args.x, args.y, args.frame_index, doc.revision
-                )
-            })
+            write_doc(&args.output_path, &doc)?;
+            let comparison = open_compare_window(&previous, &doc)
+                .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
+            Ok(format!(
+                "Updated pixel ({},{}) in frame {}; artwork revision {}. {comparison}",
+                args.x, args.y, args.frame_index, doc.revision
+            ))
         }))
     }
     #[tool(description = "Change layer name, visibility, and/or opacity in an OpenPixel asset and increment its artwork revision.")]
@@ -359,6 +380,7 @@ impl OpenPixelServer {
         Parameters(args): Parameters<SetLayerArgs>,
     ) -> Result<CallToolResult, McpError> {
         finish(read_doc(&args.path).and_then(|mut doc| {
+            let previous = doc.clone();
             if args.name.is_none() && args.visible.is_none() && args.opacity.is_none() {
                 anyhow::bail!("provide a name, visible, or opacity update");
             }
@@ -377,12 +399,13 @@ impl OpenPixelServer {
                 layer.opacity = opacity;
             }
             advance_revision(&mut doc)?;
-            write_doc(&args.output_path, &doc).map(|_| {
-                format!(
-                    "Updated layer {}; artwork revision {}",
-                    args.layer_id, doc.revision
-                )
-            })
+            write_doc(&args.output_path, &doc)?;
+            let comparison = open_compare_window(&previous, &doc)
+                .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
+            Ok(format!(
+                "Updated layer {}; artwork revision {}. {comparison}",
+                args.layer_id, doc.revision
+            ))
         }))
     }
     #[tool(description = "Duplicate a frame to the end of the animation with a chosen duration and increment the artwork revision.")]
@@ -391,6 +414,7 @@ impl OpenPixelServer {
         Parameters(args): Parameters<AddFrameArgs>,
     ) -> Result<CallToolResult, McpError> {
         finish(read_doc(&args.path).and_then(|mut doc| {
+            let previous = doc.clone();
             let source = args.source_frame.unwrap_or(0);
             let mut frame = doc
                 .frames
@@ -400,14 +424,14 @@ impl OpenPixelServer {
             frame.duration_ms = args.duration_ms.unwrap_or(100);
             doc.frames.push(frame);
             advance_revision(&mut doc)?;
-            write_doc(&args.output_path, &doc)
-                .map(|_| {
-                    format!(
-                        "Added frame {}; artwork revision {}",
-                        doc.frames.len() - 1,
-                        doc.revision
-                    )
-                })
+            write_doc(&args.output_path, &doc)?;
+            let comparison = open_compare_window(&previous, &doc)
+                .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
+            Ok(format!(
+                "Added frame {}; artwork revision {}. {comparison}",
+                doc.frames.len() - 1,
+                doc.revision
+            ))
         }))
     }
     #[tool(description = "Change the duration of an existing frame in milliseconds and increment the artwork revision.")]
@@ -416,17 +440,19 @@ impl OpenPixelServer {
         Parameters(args): Parameters<SetFrameArgs>,
     ) -> Result<CallToolResult, McpError> {
         finish(read_doc(&args.path).and_then(|mut doc| {
+            let previous = doc.clone();
             doc.frames
                 .get_mut(args.frame_index)
                 .context("frame index is outside the asset")?
                 .duration_ms = args.duration_ms;
             advance_revision(&mut doc)?;
-            write_doc(&args.output_path, &doc).map(|_| {
-                format!(
-                    "Set frame {} duration to {} ms; artwork revision {}",
-                    args.frame_index, args.duration_ms, doc.revision
-                )
-            })
+            write_doc(&args.output_path, &doc)?;
+            let comparison = open_compare_window(&previous, &doc)
+                .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
+            Ok(format!(
+                "Set frame {} duration to {} ms; artwork revision {}. {comparison}",
+                args.frame_index, args.duration_ms, doc.revision
+            ))
         }))
     }
     #[tool(description = "Enable or disable looping for an OpenPixel animation and increment the artwork revision.")]
@@ -435,14 +461,16 @@ impl OpenPixelServer {
         Parameters(args): Parameters<SetLoopArgs>,
     ) -> Result<CallToolResult, McpError> {
         finish(read_doc(&args.path).and_then(|mut doc| {
+            let previous = doc.clone();
             doc.looping = args.enabled;
             advance_revision(&mut doc)?;
-            write_doc(&args.output_path, &doc).map(|_| {
-                format!(
-                    "Looping set to {}; artwork revision {}",
-                    args.enabled, doc.revision
-                )
-            })
+            write_doc(&args.output_path, &doc)?;
+            let comparison = open_compare_window(&previous, &doc)
+                .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
+            Ok(format!(
+                "Looping set to {}; artwork revision {}. {comparison}",
+                args.enabled, doc.revision
+            ))
         }))
     }
 }

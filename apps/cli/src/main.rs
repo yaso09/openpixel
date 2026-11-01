@@ -1,6 +1,6 @@
 use anyhow::{bail, Context, Result};
 use openpixel_cli::{
-    advance_revision, export_mp4, read_doc, render_svg, valid_color, validate, write_doc, Document,
+    advance_revision, export_mp4, open_compare_window, read_doc, render_svg, valid_color, validate, write_doc, Document,
     Frame, FrameLayer, Layer,
 };
 use std::{collections::BTreeMap, env, fs, path::Path, process};
@@ -37,6 +37,7 @@ fn run() -> Result<()> {
             reject_extra(&args)?;
             inspect(&read_doc(&path)?)?
         }
+        "compare" => compare_command(args)?,
         "render" => render_command(args)?,
         "render-frames" => render_frames_command(args)?,
         "render-video" => render_video_command(args)?,
@@ -74,6 +75,7 @@ Commands:\n\
   new <file> --width N --height N [--name NAME] [--layers id[:name],...]\n\
   validate <file>                         Validate a v1 JSON asset\n\
   inspect <file>                          Show asset, frame, layer, and palette info\n\
+  compare <previous-file> <current-file>  Open a revision comparison window\n\
   render <file> --output FILE [--frame N] [--scale N] [--background #RRGGBB] [--title TEXT]\n\
   render-frames <file> --out-dir DIR [--scale N] [--title TEXT]  Export every frame as SVG\n\
   render-video <file> --output FILE.mp4 [--fps N] [--scale N]    Encode an MP4 animation with ffmpeg\n\
@@ -163,6 +165,15 @@ fn inspect(doc: &Document) -> Result<()> {
     for (color, count) in palette {
         println!("  {color}: {count} pixel(s)");
     }
+    Ok(())
+}
+fn compare_command(mut args: Vec<String>) -> Result<()> {
+    let previous_path = required_pos(&mut args, "previous asset file")?;
+    let current_path = required_pos(&mut args, "current asset file")?;
+    reject_extra(&args)?;
+    let previous = read_doc(&previous_path)?;
+    let current = read_doc(&current_path)?;
+    println!("{}", open_compare_window(&previous, &current)?);
     Ok(())
 }
 fn render_command(mut args: Vec<String>) -> Result<()> {
@@ -305,6 +316,7 @@ fn set_pixel_command(mut args: Vec<String>) -> Result<()> {
     let color = option(&mut args, "--color", None)?.context("missing --color")?;
     reject_extra(&args)?;
     let mut doc = read_doc(&input)?;
+    let previous = doc.clone();
     if x >= doc.width || y >= doc.height {
         bail!(
             "coordinates must be within 0..{} by 0..{}",
@@ -330,9 +342,11 @@ fn set_pixel_command(mut args: Vec<String>) -> Result<()> {
     };
     advance_revision(&mut doc)?;
     write_doc(&output, &doc)?;
+    let comparison = open_compare_window(&previous, &doc)
+        .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
     println!(
-        "Updated pixel ({x},{y}) in frame {frame_index}, layer {layer_id}; artwork revision {}",
-        doc.revision
+        "Updated pixel ({x},{y}) in frame {frame_index}, layer {layer_id}; artwork revision {}. {comparison}",
+        doc.revision,
     );
     Ok(())
 }
@@ -352,6 +366,7 @@ fn set_layer_command(mut args: Vec<String>) -> Result<()> {
         bail!("provide at least one of --name, --visible, or --opacity");
     }
     let mut doc = read_doc(&input)?;
+    let previous = doc.clone();
     let layer = doc
         .layers
         .iter_mut()
@@ -368,9 +383,11 @@ fn set_layer_command(mut args: Vec<String>) -> Result<()> {
     }
     advance_revision(&mut doc)?;
     write_doc(&output, &doc)?;
+    let comparison = open_compare_window(&previous, &doc)
+        .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
     println!(
-        "Updated layer {layer_id}; artwork revision {}",
-        doc.revision
+        "Updated layer {layer_id}; artwork revision {}. {comparison}",
+        doc.revision,
     );
     Ok(())
 }
@@ -380,12 +397,15 @@ fn set_loop_command(mut args: Vec<String>) -> Result<()> {
     let enabled = parse_bool(&option(&mut args, "--enabled", None)?.context("missing --enabled")?)?;
     reject_extra(&args)?;
     let mut doc = read_doc(&input)?;
+    let previous = doc.clone();
     doc.looping = enabled;
     advance_revision(&mut doc)?;
     write_doc(&output, &doc)?;
+    let comparison = open_compare_window(&previous, &doc)
+        .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
     println!(
-        "Looping set to {enabled}; artwork revision {}",
-        doc.revision
+        "Looping set to {enabled}; artwork revision {}. {comparison}",
+        doc.revision,
     );
     Ok(())
 }
@@ -411,6 +431,7 @@ fn add_frame_command(mut args: Vec<String>) -> Result<()> {
     )?;
     reject_extra(&args)?;
     let mut doc = read_doc(&input)?;
+    let previous = doc.clone();
     let mut frame = doc
         .frames
         .get(source)
@@ -421,8 +442,10 @@ fn add_frame_command(mut args: Vec<String>) -> Result<()> {
     advance_revision(&mut doc)?;
     validate(&doc)?;
     write_doc(&output, &doc)?;
+    let comparison = open_compare_window(&previous, &doc)
+        .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
     println!(
-        "Added frame {} from source frame {source}; artwork revision {}",
+        "Added frame {} from source frame {source}; artwork revision {}. {comparison}",
         doc.frames.len() - 1,
         doc.revision
     );
@@ -439,6 +462,7 @@ fn set_frame_command(mut args: Vec<String>) -> Result<()> {
     )?;
     reject_extra(&args)?;
     let mut doc = read_doc(&input)?;
+    let previous = doc.clone();
     let frame = doc
         .frames
         .get_mut(frame_index)
@@ -447,8 +471,10 @@ fn set_frame_command(mut args: Vec<String>) -> Result<()> {
     advance_revision(&mut doc)?;
     validate(&doc)?;
     write_doc(&output, &doc)?;
+    let comparison = open_compare_window(&previous, &doc)
+        .unwrap_or_else(|error| format!("Could not open compare window: {error:#}"));
     println!(
-        "Set frame {frame_index} duration to {duration_ms} ms; artwork revision {}",
+        "Set frame {frame_index} duration to {duration_ms} ms; artwork revision {}. {comparison}",
         doc.revision
     );
     Ok(())

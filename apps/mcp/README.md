@@ -42,7 +42,7 @@ The HTTP mode uses the current MCP Streamable HTTP transport. Responses use Serv
 ## Tools
 
 - `version`, `update`, `create_asset`, `validate_asset`, `inspect_asset`
-- `render_frame`, `render_all_frames`, `render_video`
+- `render_frame`, `render_all_frames`, `render_video`, `compare_assets`
 - `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, `set_loop`
 
 `render_video` writes an H.264 MP4 to the requested `output_path`, follows frame durations, and accepts optional `fps` and pixel `scale` values. It requires ffmpeg with `libx264` available on `PATH`.
@@ -50,5 +50,7 @@ The HTTP mode uses the current MCP Streamable HTTP transport. Responses use Serv
 The `update` tool accepts optional `force: true` to reinstall the latest release when the MCP server is already on that version. Restart the server after updating.
 
 All modifications take a source `path` and explicit `output_path`, so the caller decides whether to create a new file or update in place. New assets start at `revision: 1`; each successful edit tool increments the artwork revision, and `inspect_asset` reports it. Legacy assets without a revision are treated as revision 1. This is distinct from `version: 1`, which identifies the document schema. SVG rendering returns SVG content directly as tool text; video rendering writes the binary MP4 to the explicit destination. MCP tool failures return visible tool errors, while malformed protocol parameters are rejected through the MCP error channel.
+
+Each successful edit tool opens a local compare window containing the previous and new revision. Use `compare_assets` to compare any two saved files manually. The window supports side-by-side, adjustable overlay, and pixel-diff views with a shared animation-frame selector. A headless environment may not be able to open the browser window; in that case the tool result includes the saved comparison page path.
 
 The tool schemas and descriptions are generated from Rust parameter types and list through the MCP `tools/list` method.

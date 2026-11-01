@@ -103,12 +103,13 @@ Use `mountPixelArt(element, art)` for browser playback. The player exposes `play
 
 ## CLI
 
-`openpixel` provides commands for asset creation and editing, inspection, validation, SVG frame rendering, and video export. Run `openpixel help` for all arguments.
+`openpixel` provides commands for asset creation and editing, inspection, validation, revision comparison, SVG frame rendering, and video export. Run `openpixel help` for all arguments.
 
 ```bash
 openpixel inspect art/creature.json
 openpixel render-frames art/creature.json --scale 4 --out-dir out/frames
 openpixel render-video art/creature.json --output out/creature.mp4 --fps 30 --scale 4
+openpixel compare art/creature-v1.json art/creature-v2.json
 ```
 
 Run `openpixel update` to install a newer release, or `openpixel update --force` to reinstall the latest release even when the current version is already installed.
@@ -127,7 +128,7 @@ openpixel-mcp stdio
 openpixel-mcp http 127.0.0.1:8000
 ```
 
-Available tools include `version`, `update`, `create_asset`, `validate_asset`, `inspect_asset`, `render_frame`, `render_all_frames`, `render_video`, `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, and `set_loop`. Set `force: true` on the MCP `update` tool to reinstall the latest release when already current. See [MCP setup and tool details](apps/mcp/README.md).
+Available tools include `version`, `update`, `create_asset`, `validate_asset`, `inspect_asset`, `compare_assets`, `render_frame`, `render_all_frames`, `render_video`, `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, and `set_loop`. Set `force: true` on the MCP `update` tool to reinstall the latest release when already current. See [MCP setup and tool details](apps/mcp/README.md).
 
 ### Connect Codex or Claude Desktop
 
@@ -142,7 +143,7 @@ For another MCP-compatible agent, add a stdio server with command `openpixel-mcp
 
 ## Asset format
 
-OpenPixel documents contain a schema `version`, an artwork `revision`, canvas size, ordered layer definitions, and one or more frames. The schema version remains `1`; each newly created artwork starts at revision `1`, and successful CLI/MCP edits increment its revision. Legacy files without `revision` are treated as revision `1`. CLI `inspect` and MCP `inspect_asset` display the current revision. Each frame stores a two-dimensional color matrix for its layers; `null` represents a transparent pixel. Frame durations drive browser playback and video export. The shared [v1 schema](schemas/pixel-art.v1.schema.json) defines the format used by the renderer, CLI, and MCP server.
+OpenPixel documents contain a schema `version`, an artwork `revision`, canvas size, ordered layer definitions, and one or more frames. The schema version remains `1`; each newly created artwork starts at revision `1`, and successful CLI/MCP edits increment its revision and open a local comparison window. The window offers side-by-side, adjustable overlay, and pixel-diff views, plus frame selection for animations. Legacy files without `revision` are treated as revision `1`. CLI `inspect` and MCP `inspect_asset` display the current revision. Each frame stores a two-dimensional color matrix for its layers; `null` represents a transparent pixel. Frame durations drive browser playback and video export. The shared [v1 schema](schemas/pixel-art.v1.schema.json) defines the format used by the renderer, CLI, and MCP server.
 
 ## Development
 

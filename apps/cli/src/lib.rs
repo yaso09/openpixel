@@ -5,6 +5,7 @@ use std::{
     io::{Read, Write},
     path::Path,
     process::{Command, Stdio},
+    sync::atomic::{AtomicU64, Ordering},
 };
 
 mod update;
@@ -157,6 +158,49 @@ pub fn advance_revision(doc: &mut Document) -> Result<()> {
         .checked_add(1)
         .context("artwork revision is too large to increment")?;
     Ok(())
+}
+/// Write a self-contained comparison page and open it in the user's default browser.
+pub fn open_compare_window(previous: &Document, current: &Document) -> Result<String> {
+    static NEXT_COMPARE_ID: AtomicU64 = AtomicU64::new(1);
+    let before = serde_json::to_string(previous)?.replace('<', "\\u003c");
+    let after = serde_json::to_string(current)?.replace('<', "\\u003c");
+    let html = include_str!("compare-template.html")
+        .replace("__OPENPIXEL_BEFORE__", &before)
+        .replace("__OPENPIXEL_AFTER__", &after);
+    let directory = std::env::temp_dir().join("openpixel").join("compare");
+    fs::create_dir_all(&directory)?;
+    let compare_id = NEXT_COMPARE_ID.fetch_add(1, Ordering::Relaxed);
+    let path = directory.join(format!(
+        "revision-{}-to-{}-{}-{compare_id}.html",
+        previous.revision, current.revision, std::process::id()
+    ));
+    fs::write(&path, html)?;
+
+    #[cfg(target_os = "windows")]
+    let mut opener = {
+        let mut command = Command::new("explorer.exe");
+        command.arg(&path);
+        command
+    };
+    #[cfg(target_os = "macos")]
+    let mut opener = {
+        let mut command = Command::new("open");
+        command.arg(&path);
+        command
+    };
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut opener = {
+        let mut command = Command::new("xdg-open");
+        command.arg(&path);
+        command
+    };
+    opener.spawn().with_context(|| {
+        format!(
+            "comparison page was saved to {} but the browser could not be opened",
+            path.display()
+        )
+    })?;
+    Ok(format!("Opened compare window: {}", path.display()))
 }
 pub fn valid_color(color: &str) -> bool {
     (color.len() == 7 || color.len() == 9)
