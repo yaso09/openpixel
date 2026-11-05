@@ -2,149 +2,362 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
   <title>OpenPixel revision comparison</title>
   <style>
-    :root { color-scheme: dark; font: 14px/1.45 system-ui,sans-serif; background: #111820; color: #eef2ed; }
+    :root {
+      color-scheme: dark light;
+      --bg: #111820;
+      --surface: #18222b;
+      --control: #202d36;
+      --border: #303b45;
+      --border-strong: #46545e;
+      --text: #eef2ed;
+      --muted: #b4c0c4;
+      --subtle: #9aaab0;
+      --accent: #a6ed92;
+      --accent-bg: #293d38;
+      --accent-text: #c2f0a6;
+      --focus: #7cc4ff;
+      --check-a: #202a32;
+      --check-b: #29343d;
+      --removed: #ff647c;
+      --added: #70f0a2;
+      --changed: #ffd166;
+      font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f3f5f2;
+        --surface: #ffffff;
+        --control: #eef2ef;
+        --border: #d3dad6;
+        --border-strong: #aab6b0;
+        --text: #17211c;
+        --muted: #44524b;
+        --subtle: #5b6a63;
+        --accent: #2f8f4e;
+        --accent-bg: #dff3e5;
+        --accent-text: #14532d;
+        --focus: #0b63c5;
+        --check-a: #e4e9e6;
+        --check-b: #d4dbd7;
+        --removed: #d9304f;
+        --added: #1f9d55;
+        --changed: #c98a00;
+      }
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
-    header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 24px; border-bottom: 1px solid #303b45; background: #18222b; }
+    html { height: 100%; }
+    body {
+      margin: 0; min-height: 100vh; min-height: 100dvh;
+      display: flex; flex-direction: column;
+      background: var(--bg); color: var(--text);
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    }
+    header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px;
+      padding: 18px 24px; border-bottom: 1px solid var(--border); background: var(--surface);
+    }
     h1 { margin: 0; font-size: 16px; font-weight: 650; }
-    .toolbar,.controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-    button,select,input { color: inherit; font: inherit; }
-    button,select { border: 1px solid #46545e; border-radius: 7px; padding: 8px 12px; background: #202d36; }
-    button { cursor: pointer; }
-    button[aria-pressed="true"] { border-color: #a6ed92; background: #293d38; color: #c2f0a6; }
+    .toolbar, .controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    button, select, input { color: inherit; font: inherit; }
+    button, select {
+      min-height: 36px; border: 1px solid var(--border-strong); border-radius: 7px;
+      padding: 7px 12px; background: var(--control);
+    }
+    button { cursor: pointer; touch-action: manipulation; }
+    button:hover:not(:disabled), select:hover { border-color: var(--subtle); }
+    button:disabled { opacity: .45; cursor: default; }
+    button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-bg); color: var(--accent-text); }
+    :is(button, select, input):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+    input[type="range"] { width: min(220px, 60vw); accent-color: var(--accent); }
     main { flex: 1; display: flex; flex-direction: column; padding: 18px; min-height: 0; }
-    .controls { justify-content: center; min-height: 46px; color: #b4c0c4; }
+    .controls { justify-content: center; min-height: 46px; color: var(--muted); }
     .stage { flex: 1; min-height: 240px; display: grid; place-items: center; overflow: auto; }
-    .pair { width: 100%; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: start; }
+    .pair { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
     figure { min-width: 0; margin: 0; display: grid; gap: 8px; justify-items: center; }
-    figcaption { color: #bdc8ca; font-size: 12px; }
-    .art { position: relative; display: grid; place-items: center; width: min(100%,640px); min-height: 160px; max-height: calc(100vh - 190px); aspect-ratio: var(--ratio,1); overflow: hidden; background-color: #202a32; background-image: linear-gradient(45deg,#29343d 25%,transparent 25%),linear-gradient(-45deg,#29343d 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#29343d 75%),linear-gradient(-45deg,transparent 75%,#29343d 75%); background-size: 16px 16px; background-position: 0 0,0 8px,8px -8px,-8px 0; }
-    .art svg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-    .overlay { position: relative; width: min(100%,760px); max-height: calc(100vh - 190px); aspect-ratio: var(--ratio,1); overflow: hidden; background-color: #202a32; background-image: linear-gradient(45deg,#29343d 25%,transparent 25%),linear-gradient(-45deg,#29343d 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#29343d 75%),linear-gradient(-45deg,transparent 75%,#29343d 75%); background-size: 16px 16px; background-position: 0 0,0 8px,8px -8px,-8px 0; }
-    .overlay svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .diff svg { position: static; display: block; width: min(100%,760px); max-height: calc(100vh - 190px); image-rendering: pixelated; }
-    .legend { display: flex; justify-content: center; gap: 18px; margin: 10px; color: #b4c0c4; }
+    figcaption { color: var(--muted); font-size: 12px; }
+    .checker {
+      background-color: var(--check-a);
+      background-image:
+        linear-gradient(45deg, var(--check-b) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--check-b) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--check-b) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--check-b) 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    .art {
+      position: relative; display: grid; place-items: center;
+      width: min(100%, 640px); min-height: 160px; max-height: calc(100vh - 190px); max-height: calc(100dvh - 190px);
+      aspect-ratio: var(--ratio, 1); overflow: hidden; border-radius: 4px;
+    }
+    .art svg, .overlay svg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    .overlay {
+      position: relative; width: min(100%, 760px);
+      max-height: calc(100vh - 190px); max-height: calc(100dvh - 190px);
+      aspect-ratio: var(--ratio, 1); overflow: hidden; border-radius: 4px;
+    }
+    .diff { aspect-ratio: var(--ratio, 1); width: min(100%, 760px); max-height: calc(100vh - 190px); max-height: calc(100dvh - 190px); margin-inline: auto; position: relative; overflow: hidden; border-radius: 4px; }
+    .diff svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+    .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 10px; color: var(--muted); }
     .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-    .status { min-height: 20px; padding: 0 24px 12px; color: #90a1a7; text-align: center; }
-    .hidden { display: none !important; }
-    @media(max-width:680px) { header { padding: 14px; } main { padding: 12px; } .pair { grid-template-columns: 1fr; } .art { width: min(100%,520px); } }
+    .status { min-height: 20px; padding: 0 24px 12px; color: var(--subtle); text-align: center; }
+    .error { margin: 24px auto; max-width: 520px; padding: 14px 16px; border: 1px solid var(--removed); border-radius: 8px; background: var(--surface); color: var(--text); }
+    .hidden, [hidden] { display: none !important; }
+    @media (max-width: 680px) {
+      header { padding: 14px; }
+      main { padding: 12px; }
+      .pair { grid-template-columns: 1fr; }
+      .art { width: min(100%, 520px); }
+      .toolbar { width: 100%; }
+      .toolbar button { flex: 1 1 auto; }
+      .status { padding: 0 14px 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>OpenPixel revision comparison</h1>
-    <nav class="toolbar" aria-label="Comparison view">
-      <button data-mode="side" aria-pressed="true">Side by side</button>
-      <button data-mode="overlay" aria-pressed="false">Overlay</button>
-      <button data-mode="diff" aria-pressed="false">Diff view</button>
+    <nav class="toolbar" role="group" aria-label="Comparison view">
+      <button type="button" data-mode="side" aria-pressed="true">Side by side</button>
+      <button type="button" data-mode="overlay" aria-pressed="false">Overlay</button>
+      <button type="button" data-mode="diff" aria-pressed="false">Diff view</button>
     </nav>
   </header>
   <main>
     <div class="controls">
+      <button type="button" id="prev" aria-label="Previous frame">&lsaquo;</button>
       <label for="frame">Frame</label>
       <select id="frame" aria-label="Animation frame"></select>
+      <button type="button" id="next" aria-label="Next frame">&rsaquo;</button>
       <label id="blend-label" class="hidden" for="blend">New revision opacity</label>
       <input id="blend" class="hidden" type="range" min="0" max="100" value="50" aria-label="New revision opacity">
     </div>
-    <section id="side" class="stage"><div class="pair">
-      <figure><figcaption id="before-label"></figcaption><div class="art" id="before"></div></figure>
-      <figure><figcaption id="after-label"></figcaption><div class="art" id="after"></div></figure>
+    <div id="error" class="error hidden" role="alert"></div>
+    <section id="side" class="stage" aria-label="Side by side comparison"><div class="pair">
+      <figure><figcaption id="before-label"></figcaption><div class="art checker" id="before" role="img" aria-labelledby="before-label"></div></figure>
+      <figure><figcaption id="after-label"></figcaption><div class="art checker" id="after" role="img" aria-labelledby="after-label"></div></figure>
     </div></section>
-    <section id="overlay-view" class="stage hidden"><div class="overlay" id="overlay"></div></section>
-    <section id="diff-view" class="stage hidden"><div><div class="diff" id="diff"></div><div class="legend"><span><i class="dot" style="background:#ff647c"></i>Removed</span><span><i class="dot" style="background:#70f0a2"></i>Added</span><span><i class="dot" style="background:#ffd166"></i>Changed</span></div></div></section>
+    <section id="overlay-view" class="stage hidden" aria-label="Overlay comparison"><div class="overlay checker" id="overlay" role="img" aria-label="Previous and current revision overlaid"></div></section>
+    <section id="diff-view" class="stage hidden" aria-label="Diff comparison"><div style="width:100%"><div class="diff checker" id="diff" role="img" aria-label="Pixel differences between revisions"></div><div class="legend"><span><i class="dot" style="background:var(--removed)"></i>Removed</span><span><i class="dot" style="background:var(--added)"></i>Added</span><span><i class="dot" style="background:var(--changed)"></i>Changed</span></div></div></section>
   </main>
-  <div id="status" class="status" role="status"></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
   <script id="before-data" type="application/json">__OPENPIXEL_BEFORE__</script>
   <script id="after-data" type="application/json">__OPENPIXEL_AFTER__</script>
   <script>
-    const before = JSON.parse(document.querySelector('#before-data').textContent);
-    const after = JSON.parse(document.querySelector('#after-data').textContent);
-    const state = { mode: 'side', frame: 0, urls: [] };
-    const maxWidth = Math.max(before.width, after.width);
-    const maxHeight = Math.max(before.height, after.height);
-    const maxFrames = Math.max(before.frames.length, after.frames.length);
-    const revision = art => Number.isInteger(art.revision) && art.revision > 0 ? art.revision : 1;
-    document.querySelector('#before-label').textContent = `Previous · revision ${revision(before)}`;
-    document.querySelector('#after-label').textContent = `Current · revision ${revision(after)}`;
-    document.querySelector('.overlay').style.setProperty('--ratio', `${maxWidth}/${maxHeight}`);
-    document.querySelectorAll('.art').forEach(el => el.style.setProperty('--ratio', `${maxWidth}/${maxHeight}`));
-    for (let i=0;i<maxFrames;i++) { const option=document.createElement('option'); option.value=String(i); option.textContent=`${i+1} / ${maxFrames}`; document.querySelector('#frame').append(option); }
-    function svgFor(art,index,outerWidth=maxWidth,outerHeight=maxHeight) {
-      const frame=art.frames[Math.min(index,art.frames.length-1)];
-      const groups=[];
-      for (const layer of art.layers) {
-        if (layer.visible===false) continue;
-        const entry=frame.layers.find(item=>item.layerId===layer.id);
-        if (!entry) continue;
-        const rects=[];
-        entry.pixels.forEach((row,y)=>row.forEach((color,x)=>{ if(color) rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`); }));
-        groups.push(`<g opacity="${layer.opacity ?? 1}">${rects.join('')}</g>`);
+    (function () {
+      'use strict';
+      const $ = selector => document.querySelector(selector);
+
+      function showError(message) {
+        const box = $('#error');
+        box.textContent = message;
+        box.classList.remove('hidden');
+        ['#side', '#overlay-view', '#diff-view'].forEach(id => $(id).classList.add('hidden'));
+        $('.controls').classList.add('hidden');
+        $('#status').textContent = '';
       }
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${outerWidth} ${outerHeight}" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${groups.join('')}</svg>`;
-    }
-    function setSvg(target,markup,opacity=1,append=false) {
-      if(!append) target.replaceChildren();
-      const wrapper=document.createElement('div'); wrapper.innerHTML=markup;
-      const svg=wrapper.firstElementChild;
-      if(svg) { svg.style.opacity=String(opacity); target.append(svg); }
-      return svg;
-    }
-    function composite(art,index) {
-      const frame=art.frames[Math.min(index,art.frames.length-1)];
-      const out=Array.from({length:maxWidth*maxHeight},()=>[0,0,0,0]);
-      for(const layer of art.layers) {
-        if(layer.visible===false) continue;
-        const entry=frame.layers.find(item=>item.layerId===layer.id); if(!entry) continue;
-        const opacity=layer.opacity ?? 1;
-        entry.pixels.forEach((row,y)=>row.forEach((color,x)=>{
-          if(!color || x>=maxWidth || y>=maxHeight) return;
-          const rgb=[parseInt(color.slice(1,3),16),parseInt(color.slice(3,5),16),parseInt(color.slice(5,7),16)];
-          const alpha=(color.length===9?parseInt(color.slice(7,9),16)/255:1)*opacity;
-          const dst=out[y*maxWidth+x], a=alpha+dst[3]*(1-alpha);
-          if(a===0)return;
-          for(let c=0;c<3;c++) dst[c]=(rgb[c]*alpha+dst[c]*dst[3]*(1-alpha))/a;
-          dst[3]=a;
-        }));
+
+      function load(id) {
+        const art = JSON.parse(document.getElementById(id).textContent);
+        if (!art || !Array.isArray(art.layers) || !Array.isArray(art.frames) || !art.frames.length) throw new Error('Invalid asset data');
+        art.width = Math.max(1, Number(art.width) || 1);
+        art.height = Math.max(1, Number(art.height) || 1);
+        return art;
       }
-      return out;
-    }
-    function diffSvg(index) {
-      const oldPixels=composite(before,index), newPixels=composite(after,index), rects=[];
-      for(let y=0;y<maxHeight;y++) for(let x=0;x<maxWidth;x++) {
-        const a=oldPixels[y*maxWidth+x],b=newPixels[y*maxWidth+x];
-        if(a.every((v,c)=>Math.abs(v-b[c])<0.01)) continue;
-        const color=a[3]<0.01?'#70f0a2':b[3]<0.01?'#ff647c':'#ffd166';
-        rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`);
+
+      let before, after;
+      try {
+        before = load('before-data');
+        after = load('after-data');
+      } catch (error) {
+        showError('The comparison could not be loaded. One of the revisions is missing or contains invalid data.');
+        return;
       }
-      const faint=svgFor(after,index).replace('<svg ','<svg opacity="0.16" ');
-      const inner=faint.slice(faint.indexOf('>')+1,faint.lastIndexOf('</svg>'));
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${maxWidth} ${maxHeight}" shape-rendering="crispEdges">${inner}${rects.join('')}</svg>`;
-    }
-    function render() {
-      for(const url of state.urls) URL.revokeObjectURL(url); state.urls=[];
-      const index=state.frame;
-      const oldSvg=svgFor(before,index), newSvg=svgFor(after,index);
-      setSvg(document.querySelector('#before'),oldSvg);
-      setSvg(document.querySelector('#after'),newSvg);
-      const overlay=document.querySelector('#overlay');
-      setSvg(overlay,oldSvg);
-      setSvg(overlay,newSvg,Number(document.querySelector('#blend').value)/100,true);
-      setSvg(document.querySelector('#diff'),diffSvg(index));
-      document.querySelectorAll('[data-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mode===state.mode)));
-      document.querySelector('#side').classList.toggle('hidden',state.mode!=='side');
-      document.querySelector('#overlay-view').classList.toggle('hidden',state.mode!=='overlay');
-      document.querySelector('#diff-view').classList.toggle('hidden',state.mode!=='diff');
-      document.querySelector('#blend').classList.toggle('hidden',state.mode!=='overlay');
-      document.querySelector('#blend-label').classList.toggle('hidden',state.mode!=='overlay');
-      document.querySelector('#status').textContent=`Comparing revision ${revision(before)} with revision ${revision(after)} · frame ${index+1}`;
-    }
-    document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{state.mode=button.dataset.mode;render();}));
-    document.querySelector('#frame').addEventListener('change',event=>{state.frame=Number(event.target.value);render();});
-    document.querySelector('#blend').addEventListener('input',render);
-    render();
+
+      const state = { mode: 'side', frame: 0 };
+      const maxWidth = Math.max(before.width, after.width);
+      const maxHeight = Math.max(before.height, after.height);
+      const maxFrames = Math.max(before.frames.length, after.frames.length);
+      const revision = art => Number.isInteger(art.revision) && art.revision > 0 ? art.revision : 1;
+      const ratio = `${maxWidth}/${maxHeight}`;
+
+      $('#before-label').textContent = `Previous \u00b7 revision ${revision(before)}`;
+      $('#after-label').textContent = `Current \u00b7 revision ${revision(after)}`;
+      ['.overlay', '.diff'].forEach(sel => $(sel).style.setProperty('--ratio', ratio));
+      document.querySelectorAll('.art').forEach(el => el.style.setProperty('--ratio', ratio));
+
+      const frameSelect = $('#frame');
+      for (let i = 0; i < maxFrames; i++) {
+        const option = document.createElement('option');
+        option.value = String(i);
+        option.textContent = `${i + 1} / ${maxFrames}`;
+        frameSelect.append(option);
+      }
+
+      // Accepts #rgb, #rgba, #rrggbb, #rrggbbaa. Returns null for anything else (also prevents markup injection).
+      function parseColor(value) {
+        if (typeof value !== 'string') return null;
+        let hex = value.trim();
+        if (!/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(hex)) return null;
+        hex = hex.slice(1);
+        if (hex.length <= 4) hex = hex.split('').map(ch => ch + ch).join('');
+        return {
+          hex: '#' + hex.slice(0, 6).toLowerCase(),
+          rgb: [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16)),
+          alpha: hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1
+        };
+      }
+
+      const layerOpacity = layer => {
+        const value = Number(layer.opacity ?? 1);
+        return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1;
+      };
+
+      function frameAt(art, index) {
+        return art.frames[Math.min(index, art.frames.length - 1)] || { layers: [] };
+      }
+
+      function eachPixel(art, index, callback) {
+        const frame = frameAt(art, index);
+        const entries = Array.isArray(frame.layers) ? frame.layers : [];
+        for (const layer of art.layers) {
+          if (layer.visible === false) continue;
+          const entry = entries.find(item => item.layerId === layer.id);
+          if (!entry || !Array.isArray(entry.pixels)) continue;
+          callback(layer, entry);
+        }
+      }
+
+      function layerGroups(art, index) {
+        const groups = [];
+        eachPixel(art, index, (layer, entry) => {
+          const rects = [];
+          entry.pixels.forEach((row, y) => {
+            if (!Array.isArray(row)) return;
+            row.forEach((color, x) => {
+              const parsed = parseColor(color);
+              if (!parsed) return;
+              const alpha = parsed.alpha < 1 ? ` fill-opacity="${parsed.alpha.toFixed(3)}"` : '';
+              rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${parsed.hex}"${alpha}/>`);
+            });
+          });
+          groups.push(`<g opacity="${layerOpacity(layer)}">${rects.join('')}</g>`);
+        });
+        return groups.join('');
+      }
+
+      function svgFor(art, index) {
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${maxWidth} ${maxHeight}" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${layerGroups(art, index)}</svg>`;
+      }
+
+      function setSvg(target, markup, opacity = 1, append = false) {
+        if (!append) target.replaceChildren();
+        const template = document.createElement('template');
+        template.innerHTML = markup.trim();
+        const svg = template.content.firstElementChild;
+        if (svg) {
+          svg.style.opacity = String(opacity);
+          target.append(svg);
+        }
+        return svg;
+      }
+
+      function composite(art, index) {
+        const out = Array.from({ length: maxWidth * maxHeight }, () => [0, 0, 0, 0]);
+        eachPixel(art, index, (layer, entry) => {
+          const opacity = layerOpacity(layer);
+          entry.pixels.forEach((row, y) => {
+            if (!Array.isArray(row) || y >= maxHeight) return;
+            row.forEach((color, x) => {
+              if (x >= maxWidth) return;
+              const parsed = parseColor(color);
+              if (!parsed) return;
+              const alpha = parsed.alpha * opacity;
+              const dst = out[y * maxWidth + x];
+              const a = alpha + dst[3] * (1 - alpha);
+              if (a === 0) return;
+              for (let c = 0; c < 3; c++) dst[c] = (parsed.rgb[c] * alpha + dst[c] * dst[3] * (1 - alpha)) / a;
+              dst[3] = a;
+            });
+          });
+        });
+        return out;
+      }
+
+      function diffSvg(index) {
+        const oldPixels = composite(before, index);
+        const newPixels = composite(after, index);
+        const rects = [];
+        let changed = 0;
+        for (let y = 0; y < maxHeight; y++) {
+          for (let x = 0; x < maxWidth; x++) {
+            const a = oldPixels[y * maxWidth + x], b = newPixels[y * maxWidth + x];
+            if (a.every((v, c) => Math.abs(v - b[c]) < 0.01)) continue;
+            const color = a[3] < 0.01 ? 'var(--added)' : b[3] < 0.01 ? 'var(--removed)' : 'var(--changed)';
+            rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`);
+            changed++;
+          }
+        }
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${maxWidth} ${maxHeight}" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><g opacity="0.16">${layerGroups(after, index)}</g>${rects.join('')}</svg>`;
+        return { svg, changed };
+      }
+
+      function render() {
+        const index = state.frame;
+        const oldSvg = svgFor(before, index), newSvg = svgFor(after, index);
+        setSvg($('#before'), oldSvg);
+        setSvg($('#after'), newSvg);
+        const overlay = $('#overlay');
+        setSvg(overlay, oldSvg);
+        setSvg(overlay, newSvg, Number($('#blend').value) / 100, true);
+
+        let changed = null;
+        if (state.mode === 'diff') {
+          const diff = diffSvg(index);
+          setSvg($('#diff'), diff.svg);
+          changed = diff.changed;
+        }
+
+        frameSelect.value = String(index);
+        $('#prev').disabled = index <= 0;
+        $('#next').disabled = index >= maxFrames - 1;
+        document.querySelectorAll('[data-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === state.mode)));
+        $('#side').classList.toggle('hidden', state.mode !== 'side');
+        $('#overlay-view').classList.toggle('hidden', state.mode !== 'overlay');
+        $('#diff-view').classList.toggle('hidden', state.mode !== 'diff');
+        $('#blend').classList.toggle('hidden', state.mode !== 'overlay');
+        $('#blend-label').classList.toggle('hidden', state.mode !== 'overlay');
+        $('#status').textContent = `Comparing revision ${revision(before)} with revision ${revision(after)} \u00b7 frame ${index + 1}` +
+          (changed === null ? '' : changed === 0 ? ' \u00b7 no differences' : ` \u00b7 ${changed} changed pixel${changed === 1 ? '' : 's'}`);
+      }
+
+      function setFrame(value) {
+        state.frame = Math.min(maxFrames - 1, Math.max(0, value));
+        render();
+      }
+
+      document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => { state.mode = button.dataset.mode; render(); }));
+      frameSelect.addEventListener('change', event => setFrame(Number(event.target.value)));
+      $('#prev').addEventListener('click', () => setFrame(state.frame - 1));
+      $('#next').addEventListener('click', () => setFrame(state.frame + 1));
+      $('#blend').addEventListener('input', render);
+      document.addEventListener('keydown', event => {
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+        const tag = event.target && event.target.tagName;
+        if (tag === 'SELECT' || tag === 'INPUT') return;
+        if (event.key === 'ArrowLeft') { setFrame(state.frame - 1); event.preventDefault(); }
+        else if (event.key === 'ArrowRight') { setFrame(state.frame + 1); event.preventDefault(); }
+      });
+      render();
+    })();
   </script>
 </body>
 </html>

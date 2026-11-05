@@ -4,6 +4,13 @@ This file is automatically updated for each release.
 
 ---
 
+## [v0.4.1] - 2026-11-05
+
+## Improved
+- Refresh the revision comparison window with responsive layouts, light and dark themes, clearer controls, and improved frame navigation.
+
+---
+
 ## [v0.4.0] - 2026-11-01
 
 ## Added
