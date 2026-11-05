@@ -99,8 +99,10 @@
     .overlay {
       position: relative; width: min(100%, 760px);
       max-height: calc(100vh - 190px); max-height: calc(100dvh - 190px);
-      aspect-ratio: var(--ratio, 1); overflow: hidden; border-radius: 4px;
+      aspect-ratio: var(--ratio, 1); overflow: hidden; border-radius: 4px; touch-action: pan-y;
     }
+    .overlay__after { position: absolute; inset: 0; overflow: hidden; clip-path: inset(0 0 0 50%); pointer-events: none; }
+    .overlay__divider { position: absolute; z-index: 1; top: 0; bottom: 0; left: 50%; width: 2px; background: var(--accent); box-shadow: 0 0 0 1px #0008, 0 0 12px #0008; transform: translateX(-50%); pointer-events: none; }
     .diff { aspect-ratio: var(--ratio, 1); width: min(100%, 760px); max-height: calc(100vh - 190px); max-height: calc(100dvh - 190px); margin-inline: auto; position: relative; overflow: hidden; border-radius: 4px; }
     .diff svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; image-rendering: pixelated; }
     .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 10px; color: var(--muted); }
@@ -137,15 +139,15 @@
       <label for="frame">Frame</label>
       <select id="frame" aria-label="Animation frame"></select>
       <button type="button" id="next" aria-label="Next frame">&rsaquo;</button>
-      <label id="blend-label" class="hidden" for="blend">New revision opacity</label>
-      <input id="blend" class="hidden" type="range" min="0" max="100" value="50" aria-label="New revision opacity">
+      <label id="overlay-range-label" class="hidden" for="overlay-range">Current revision visible</label>
+      <input id="overlay-range" class="hidden" type="range" min="0" max="100" step="0.05" value="50" aria-label="Current revision visible from the right">
     </div>
     <div id="error" class="error hidden" role="alert"></div>
     <section id="side" class="stage" aria-label="Side by side comparison"><div class="pair">
       <figure><figcaption id="before-label"></figcaption><div class="art checker" id="before" role="img" aria-labelledby="before-label"></div></figure>
       <figure><figcaption id="after-label"></figcaption><div class="art checker" id="after" role="img" aria-labelledby="after-label"></div></figure>
     </div></section>
-    <section id="overlay-view" class="stage hidden" aria-label="Overlay comparison"><div class="overlay checker" id="overlay" role="img" aria-label="Previous and current revision overlaid"></div></section>
+    <section id="overlay-view" class="stage hidden" aria-label="Overlay comparison"><div class="overlay checker" id="overlay" role="img" aria-label="Swipe to compare the previous revision on the left with the current revision on the right"></div></section>
     <section id="diff-view" class="stage hidden" aria-label="Diff comparison"><div style="width:100%"><div class="diff checker" id="diff" role="img" aria-label="Pixel differences between revisions"></div><div class="legend"><span><i class="dot" style="background:var(--removed)"></i>Removed</span><span><i class="dot" style="background:var(--added)"></i>Added</span><span><i class="dot" style="background:var(--changed)"></i>Changed</span></div></div></section>
   </main>
   <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -317,7 +319,17 @@
         setSvg($('#after'), newSvg);
         const overlay = $('#overlay');
         setSvg(overlay, oldSvg);
-        setSvg(overlay, newSvg, Number($('#blend').value) / 100, true);
+        const afterLayer = document.createElement('div');
+        afterLayer.className = 'overlay__after';
+        overlay.append(afterLayer);
+        setSvg(afterLayer, newSvg);
+        const divider = document.createElement('div');
+        divider.className = 'overlay__divider';
+        overlay.append(divider);
+        const currentVisible = Number($('#overlay-range').value);
+        const boundary = 100 - currentVisible;
+        afterLayer.style.clipPath = `inset(0 0 0 ${boundary}%)`;
+        divider.style.left = `${boundary}%`;
 
         let changed = null;
         if (state.mode === 'diff') {
@@ -333,8 +345,8 @@
         $('#side').classList.toggle('hidden', state.mode !== 'side');
         $('#overlay-view').classList.toggle('hidden', state.mode !== 'overlay');
         $('#diff-view').classList.toggle('hidden', state.mode !== 'diff');
-        $('#blend').classList.toggle('hidden', state.mode !== 'overlay');
-        $('#blend-label').classList.toggle('hidden', state.mode !== 'overlay');
+        $('#overlay-range').classList.toggle('hidden', state.mode !== 'overlay');
+        $('#overlay-range-label').classList.toggle('hidden', state.mode !== 'overlay');
         $('#status').textContent = `Comparing revision ${revision(before)} with revision ${revision(after)} \u00b7 frame ${index + 1}` +
           (changed === null ? '' : changed === 0 ? ' \u00b7 no differences' : ` \u00b7 ${changed} changed pixel${changed === 1 ? '' : 's'}`);
       }
@@ -348,7 +360,7 @@
       frameSelect.addEventListener('change', event => setFrame(Number(event.target.value)));
       $('#prev').addEventListener('click', () => setFrame(state.frame - 1));
       $('#next').addEventListener('click', () => setFrame(state.frame + 1));
-      $('#blend').addEventListener('input', render);
+      $('#overlay-range').addEventListener('input', render);
       document.addEventListener('keydown', event => {
         if (event.altKey || event.ctrlKey || event.metaKey) return;
         const tag = event.target && event.target.tagName;

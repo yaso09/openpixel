@@ -4,6 +4,13 @@ This file is automatically updated for each release.
 
 ---
 
+## [v0.4.2] - 2026-11-05
+
+## Improved
+- Replace revision overlay opacity blending with an adjustable swipe comparison.
+
+---
+
 ## [v0.4.1] - 2026-11-05
 
 ## Improved
