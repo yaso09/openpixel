@@ -1,5 +1,6 @@
 <div align="center">
   <img src="banner.svg" alt="OpenPixel pixel art landscape" width="100%" />
+  <video src="openpixel-promo.mp4" controls playsinline width="100%" aria-label="OpenPixel product demo"></video>
 
   # OpenPixel
 
