@@ -6,6 +6,8 @@
 
   **Create pixel art with agents. Render it in the browser, export SVGs, or turn animations into MP4.**
 
+  [![M8ven Score](https://m8ven.ai/badge/mcp/yaso09-openpixel-fxfhwj?v=8e8fc8e8d1593733a4b19f3de9f22aac)](https://m8ven.ai/mcp/yaso09-openpixel-fxfhwj?s=readme)
+
   [![TypeScript](https://img.shields.io/badge/renderer-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](packages/pixelart)
   [![Rust](https://img.shields.io/badge/tools-Rust-000000?style=flat-square&logo=rust&logoColor=white)](apps)
   [![MIT](https://img.shields.io/badge/license-MIT-8A5CF6?style=flat-square)](LICENSE)
