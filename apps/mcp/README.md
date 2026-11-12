@@ -15,14 +15,22 @@ cargo run -p openpixel-mcp -- http 127.0.0.1:8000
 
 ## Connect an agent
 
-After installing OpenPixel, run one of these commands to add the local stdio server to the agent's user configuration:
+After installing OpenPixel, run the command for your coding agent:
 
 ```sh
 openpixel-mcp add codex
 openpixel-mcp add claude
+openpixel-mcp add cursor
+openpixel-mcp add vscode
+openpixel-mcp add cline
+openpixel-mcp add roo
+openpixel-mcp add zed
+openpixel-mcp add continue
 ```
 
-The Codex entry is added to `~/.codex/config.toml`. Claude Desktop uses `%APPDATA%\\Claude\\claude_desktop_config.json` on Windows and `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS. Existing server entries are preserved, and the config stores the full path to the installed executable. Restart the selected app after setup. Keep `openpixel-mcp` at that location; if you configure an agent manually, its command must resolve to the executable.
+The commands write the full path to the installed executable and preserve other server entries. Codex, Claude Desktop, Cursor, VS Code Copilot, Cline, and Zed use each app's user config. Roo Code writes `.roo/mcp.json` in the current project; Continue writes `.continue/mcpServers/openpixel.json` in the current project. Restart or reload the selected app after setup. Keep `openpixel-mcp` at that location; if you configure an agent manually, its command must resolve to the executable.
+
+VS Code Copilot can also be selected with `openpixel-mcp add copilot`. Continue requires Agent mode. Roo Code's project configuration is shared with that workspace, so review it before committing.
 
 To configure another MCP-compatible agent manually, register a stdio server with command `openpixel-mcp` and argument `stdio`. For example, Claude Desktop uses:
 

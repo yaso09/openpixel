@@ -507,12 +507,18 @@ async fn main() -> Result<()> {
     let mut args = env::args().skip(1);
     let transport = args.next().unwrap_or_else(|| "stdio".into());
     if transport == "add" {
-        let client = args.next().ok_or_else(|| anyhow::anyhow!("missing agent (codex or claude)"))?;
+        let client = args.next().ok_or_else(|| anyhow::anyhow!("missing agent"))?;
         if args.next().is_some() { anyhow::bail!("unexpected extra arguments"); }
         return match client.as_str() {
             "codex" => add_codex(),
             "claude" => add_claude(),
-            _ => anyhow::bail!("unknown agent '{client}'. Choose 'codex' or 'claude'."),
+            "cursor" => add_json_client("Cursor", cursor_config_path()?, "mcpServers"),
+            "vscode" | "copilot" => add_json_client("VS Code Copilot", vscode_config_path()?, "servers"),
+            "cline" => add_json_client("Cline", cline_config_path()?, "mcpServers"),
+            "zed" => add_json_client("Zed", zed_config_path()?, "context_servers"),
+            "roo" | "roo-code" => add_json_client("Roo Code", std::env::current_dir()?.join(".roo/mcp.json"), "mcpServers"),
+            "continue" => add_continue(),
+            _ => anyhow::bail!("unknown agent '{client}'. Choose codex, claude, cursor, vscode, cline, roo, zed, or continue."),
         };
     }
     match transport.as_str() {
@@ -548,7 +554,7 @@ async fn main() -> Result<()> {
                 })
                 .await?;
         }
-        _ => anyhow::bail!("usage: openpixel-mcp [stdio|http [host:port]|add <codex|claude>]"),
+        _ => anyhow::bail!("usage: openpixel-mcp [stdio|http [host:port]|add <agent>]"),
     }
     Ok(())
 }
@@ -563,6 +569,113 @@ fn config_home() -> Result<std::path::PathBuf> {
 
 fn server_executable() -> Result<String> {
     Ok(env::current_exe()?.to_string_lossy().into_owned())
+}
+
+fn cursor_config_path() -> Result<std::path::PathBuf> {
+    Ok(config_home()?.join(".cursor/mcp.json"))
+}
+
+fn vscode_config_path() -> Result<std::path::PathBuf> {
+    #[cfg(windows)]
+    {
+        let base = env::var_os("APPDATA")
+            .map(std::path::PathBuf::from)
+            .ok_or_else(|| anyhow::anyhow!("APPDATA is not set"))?;
+        Ok(base.join("Code/User/mcp.json"))
+    }
+    #[cfg(target_os = "macos")]
+    {
+        Ok(config_home()?.join("Library/Application Support/Code/User/mcp.json"))
+    }
+    #[cfg(all(not(windows), not(target_os = "macos")))]
+    {
+        Ok(env::var_os("XDG_CONFIG_HOME")
+            .map(std::path::PathBuf::from)
+            .unwrap_or(config_home()?.join(".config"))
+            .join("Code/User/mcp.json"))
+    }
+}
+
+fn cline_config_path() -> Result<std::path::PathBuf> {
+    if let Some(path) = env::var_os("CLINE_MCP_SETTINGS_PATH") {
+        return Ok(path.into());
+    }
+    Ok(config_home()?.join(".cline/data/settings/cline_mcp_settings.json"))
+}
+
+fn zed_config_path() -> Result<std::path::PathBuf> {
+    #[cfg(windows)]
+    {
+        let base = env::var_os("APPDATA")
+            .map(std::path::PathBuf::from)
+            .ok_or_else(|| anyhow::anyhow!("APPDATA is not set"))?;
+        Ok(base.join("Zed/settings.json"))
+    }
+    #[cfg(target_os = "macos")]
+    {
+        Ok(config_home()?.join("Library/Application Support/Zed/settings.json"))
+    }
+    #[cfg(all(not(windows), not(target_os = "macos")))]
+    {
+        Ok(env::var_os("XDG_CONFIG_HOME")
+            .map(std::path::PathBuf::from)
+            .unwrap_or(config_home()?.join(".config"))
+            .join("zed/settings.json"))
+    }
+}
+
+fn add_json_client(
+    client: &str,
+    path: std::path::PathBuf,
+    collection: &str,
+) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let mut config: serde_json::Value = if path.exists() {
+        serde_json::from_slice(&std::fs::read(&path).with_context(|| format!("could not read {}", path.display()))?)
+            .with_context(|| format!("{} is not valid JSON", path.display()))?
+    } else {
+        serde_json::json!({})
+    };
+    let root = config.as_object_mut().ok_or_else(|| anyhow::anyhow!("{} must contain a JSON object", path.display()))?;
+    let servers = root.entry(collection).or_insert_with(|| serde_json::json!({}));
+    let servers = servers.as_object_mut().ok_or_else(|| anyhow::anyhow!("{collection} in {} must be an object", path.display()))?;
+    if servers.contains_key("openpixel") {
+        println!("OpenPixel MCP is already configured for {client} in {}", path.display());
+        return Ok(());
+    }
+    servers.insert("openpixel".into(), serde_json::json!({"command":server_executable()? ,"args":["stdio"]}));
+    let mut output = serde_json::to_string_pretty(&config)?;
+    output.push('\n');
+    std::fs::write(&path, output).with_context(|| format!("could not write {}", path.display()))?;
+    println!("Added OpenPixel MCP to {client} in {}. Restart {client} to connect.", path.display());
+    Ok(())
+}
+
+fn add_continue() -> Result<()> {
+    let path = std::env::current_dir()?.join(".continue/mcpServers/openpixel.json");
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    if path.exists() {
+        println!("OpenPixel MCP is already configured for Continue in {}", path.display());
+        return Ok(());
+    }
+    let config = serde_json::json!({
+        "name": "OpenPixel MCP",
+        "version": "1.0.0",
+        "schema": "v1",
+        "mcpServers": [{
+            "name": "OpenPixel",
+            "command": server_executable()?,
+            "args": ["stdio"]
+        }]
+    });
+    std::fs::write(&path, format!("{}\n", serde_json::to_string_pretty(&config)?))
+        .with_context(|| format!("could not write {}", path.display()))?;
+    println!("Added OpenPixel MCP to Continue in {}. Restart Continue to connect.", path.display());
+    Ok(())
 }
 
 fn add_codex() -> Result<()> {

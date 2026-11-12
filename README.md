@@ -133,16 +133,22 @@ openpixel-mcp http 127.0.0.1:8000
 
 Available tools include `version`, `update`, `create_asset`, `validate_asset`, `inspect_asset`, `compare_assets`, `render_frame`, `render_all_frames`, `render_video`, `set_pixel`, `set_layer`, `add_frame`, `set_frame_duration`, and `set_loop`. Set `force: true` on the MCP `update` tool to reinstall the latest release when already current. See [MCP setup and tool details](apps/mcp/README.md).
 
-### Connect Codex or Claude Desktop
+### Connect a coding agent
 
-After installing OpenPixel, run the matching command to register the local MCP server automatically, then restart the app:
+After installing OpenPixel, run the matching command to register the local MCP server, then restart or reload the app:
 
 ```bash
 openpixel-mcp add codex
 openpixel-mcp add claude
+openpixel-mcp add cursor
+openpixel-mcp add vscode
+openpixel-mcp add cline
+openpixel-mcp add roo
+openpixel-mcp add zed
+openpixel-mcp add continue
 ```
 
-For another MCP-compatible agent, add a stdio server with command `openpixel-mcp` and argument `stdio`. See the [MCP setup guide](apps/mcp/README.md) for a manual configuration example and config file locations.
+Use `openpixel-mcp add copilot` as an alias for VS Code Copilot. Roo Code and Continue write project-level configuration files in the current directory; other commands update each app's user-level configuration. See the [MCP setup guide](apps/mcp/README.md) for details and manual configuration.
 
 ## Asset format
 

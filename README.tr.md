@@ -48,16 +48,22 @@ npx skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixe
 
 Node.js/npm yüklüyse platform kurucuları bu beceriyi de global olarak kurar.
 
-### Ajanlara MCP bağlantısı
+### Kodlama ajanlarına MCP bağlantısı
 
-OpenPixel kurulduktan sonra aşağıdaki komutlardan birini çalıştırarak MCP sunucusunu Codex'e veya Claude Desktop'a otomatik ekleyin; ardından uygulamayı yeniden başlatın:
+OpenPixel kurulduktan sonra kullandığınız ajan için komutu çalıştırın, ardından uygulamayı yeniden başlatın veya yenileyin:
 
 ```sh
 openpixel-mcp add codex
 openpixel-mcp add claude
+openpixel-mcp add cursor
+openpixel-mcp add vscode
+openpixel-mcp add cline
+openpixel-mcp add roo
+openpixel-mcp add zed
+openpixel-mcp add continue
 ```
 
-Başka bir MCP uyumlu ajan için stdio sunucusu ekleyin: komut `openpixel-mcp`, argüman `stdio`. Dosya konumları ve Claude Desktop için elle yapılandırma örneği [MCP kurulum kılavuzunda](apps/mcp/README.md) bulunur.
+VS Code Copilot için `openpixel-mcp add copilot` takma adını da kullanabilirsiniz. Roo Code ve Continue komutları geçerli proje klasörüne yapılandırma yazar; diğer komutlar uygulamanın kullanıcı yapılandırmasını günceller. Ayrıntılar ve elle yapılandırma örnekleri [MCP kurulum kılavuzunda](apps/mcp/README.md) bulunur.
 
 Depo geliştirmesi için kök dizinde:
 
