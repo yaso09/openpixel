@@ -8,14 +8,14 @@
 
   [![M8ven Score](https://m8ven.ai/badge/mcp/yaso09-openpixel-fxfhwj?v=8e8fc8e8d1593733a4b19f3de9f22aac)](https://m8ven.ai/mcp/yaso09-openpixel-fxfhwj?s=readme)
 
-  [![TypeScript](https://img.shields.io/badge/renderer-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](packages/pixelart)
+  [![Rust/WASM](https://img.shields.io/badge/renderer-Rust%20%2B%20WASM-CE422B?style=flat-square&logo=rust&logoColor=white)](packages/pixelart)
   [![Rust](https://img.shields.io/badge/tools-Rust-000000?style=flat-square&logo=rust&logoColor=white)](apps)
   [![MIT](https://img.shields.io/badge/license-MIT-8A5CF6?style=flat-square)](LICENSE)
 
-  [Install](#install) · [Quick start](#quick-start) · [Renderer](#typescript-renderer) · [CLI](#cli) · [MCP](#mcp-server) · [Development](#development)
+  [Install](#install) · [Quick start](#quick-start) · [Renderer](#rust-and-webassembly-renderer) · [CLI](#cli) · [MCP](#mcp-server) · [Development](#development)
 </div>
 
-OpenPixel is a small toolkit for creating and using pixel art images and animations. An asset is a JSON document built from ordered layers of pixel matrices and animation frames. AI agents can author and edit the same format through the CLI or MCP server; the TypeScript library renders it as crisp SVG in a browser.
+OpenPixel is a small toolkit for creating and using pixel art images and animations. An asset is a JSON document built from ordered layers of pixel matrices and animation frames. AI agents can author and edit the same format through the CLI or MCP server; Rust renders it as crisp SVG through WebAssembly, while a TypeScript API and browser animation player keep it easy to use on websites.
 
 ## What you can do
 
@@ -54,14 +54,14 @@ npx skills add https://github.com/yaso09/openpixel/skills --skill openpixel-pixe
 
 The platform installers also install this skill globally when Node.js/npm is available.
 
-### TypeScript renderer
+### Rust and WebAssembly renderer
 
 ```bash
 npm i -g github:yaso09/openpixel
 ```
 
 > [!NOTE]
-> The TypeScript renderer is distributed from this GitHub repository and will not be published to npm.
+> The renderer package, including its WebAssembly module, is distributed from this GitHub repository and will not be published to npm.
 
 ## Quick start
 
@@ -76,7 +76,7 @@ openpixel render art/creature-painted.json --scale 8 --output out/creature.svg
 
 Edits write to an explicit output path so the source asset stays intact. Coordinates and frame indices start at zero. See [the animated example](examples/two-frame-spark.json) for a complete multi-frame document.
 
-## TypeScript renderer
+## Rust and WebAssembly renderer
 
 Render a document directly to SVG:
 
@@ -150,9 +150,11 @@ OpenPixel documents contain a schema `version`, an artwork `revision`, canvas si
 
 ## Development
 
-Requirements: Node.js 20 or later and a stable Rust toolchain.
+Requirements: Node.js 20 or later, a stable Rust toolchain, the `wasm32-unknown-unknown` Rust target, and `wasm-pack` (for rebuilding the renderer).
 
 ```bash
+rustup target add wasm32-unknown-unknown
+cargo install wasm-pack
 npm install
 npm run build
 cargo build --release --workspace
