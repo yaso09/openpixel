@@ -1,6 +1,6 @@
 # @openpixel/renderer
 
-TypeScript renderer and browser animation player for OpenPixel v1 JSON assets. It has no runtime dependencies.
+Rust/WebAssembly SVG renderer and TypeScript browser animation player for OpenPixel v1 JSON assets. The public rendering API remains TypeScript; Rust validates and renders each selected frame through WebAssembly.
 
 ## Install
 
@@ -9,6 +9,19 @@ npm i -g github:yaso09/openpixel
 ```
 
 The TypeScript renderer is distributed from the OpenPixel GitHub repository and will not be published to npm.
+
+## Build from source
+
+Install the Rust WebAssembly target and `wasm-pack` before building the workspace:
+
+```sh
+rustup target add wasm32-unknown-unknown
+cargo install wasm-pack
+npm install
+npm run build
+```
+
+The TypeScript package build compiles `packages/renderer-core` to WebAssembly and generates its JS bindings before compiling the TypeScript API. Browser apps initialize the module during ESM import; Node.js loads the packaged Wasm file from disk. The animation player and DOM integration remain in TypeScript.
 
 ## Render an SVG frame
 

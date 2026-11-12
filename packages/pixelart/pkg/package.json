@@ -1,0 +1,17 @@
+{
+  "name": "openpixel-renderer-core",
+  "type": "module",
+  "description": "Rust SVG renderer shared by OpenPixel native and WebAssembly packages",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "renderer_core_bg.wasm",
+    "renderer_core.js",
+    "renderer_core.d.ts"
+  ],
+  "main": "renderer_core.js",
+  "types": "renderer_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
