@@ -150,6 +150,8 @@ openpixel-mcp add continue
 
 Use `openpixel-mcp add copilot` as an alias for VS Code Copilot. Roo Code and Continue write project-level configuration files in the current directory; other commands update each app's user-level configuration. See the [MCP setup guide](apps/mcp/README.md) for details and manual configuration.
 
+Run `openpixel-mcp list` to see which supported apps have OpenPixel configured. Run `openpixel-mcp remove <app>` to remove its entry while preserving other MCP servers.
+
 ## Asset format
 
 OpenPixel documents contain a schema `version`, an artwork `revision`, canvas size, ordered layer definitions, and one or more frames. The schema version remains `1`; each newly created artwork starts at revision `1`, and successful CLI/MCP edits increment its revision and open a local comparison window. The window offers side-by-side, adjustable overlay, and pixel-diff views, plus frame selection for animations. Legacy files without `revision` are treated as revision `1`. CLI `inspect` and MCP `inspect_asset` display the current revision. Each frame stores a two-dimensional color matrix for its layers; `null` represents a transparent pixel. Frame durations drive browser playback and video export. The shared [v1 schema](schemas/pixel-art.v1.schema.json) defines the format used by the renderer, CLI, and MCP server.

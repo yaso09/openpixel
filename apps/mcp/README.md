@@ -32,6 +32,14 @@ The commands write the full path to the installed executable and preserve other 
 
 VS Code Copilot can also be selected with `openpixel-mcp add copilot`. Continue requires Agent mode. Roo Code's project configuration is shared with that workspace, so review it before committing.
 
+List the supported app configurations found on this computer with:
+
+```sh
+openpixel-mcp list
+```
+
+The list checks user-level settings and project-level Roo Code and Continue files in the current directory. Remove OpenPixel from one app with `openpixel-mcp remove <app>`; supported names match `add` (including `copilot`, `roo-code`). Other MCP server entries are preserved.
+
 To configure another MCP-compatible agent manually, register a stdio server with command `openpixel-mcp` and argument `stdio`. For example, Claude Desktop uses:
 
 ```json

@@ -521,6 +521,19 @@ async fn main() -> Result<()> {
             _ => anyhow::bail!("unknown agent '{client}'. Choose codex, claude, cursor, vscode, cline, roo, zed, or continue."),
         };
     }
+    if transport == "list" {
+        if args.next().is_some() {
+            anyhow::bail!("usage: openpixel-mcp list");
+        }
+        return list_clients();
+    }
+    if transport == "remove" {
+        let client = args.next().ok_or_else(|| anyhow::anyhow!("missing agent"))?;
+        if args.next().is_some() {
+            anyhow::bail!("unexpected extra arguments");
+        }
+        return remove_client(&client);
+    }
     match transport.as_str() {
         "stdio" => {
             if args.next().is_some() {
@@ -554,7 +567,7 @@ async fn main() -> Result<()> {
                 })
                 .await?;
         }
-        _ => anyhow::bail!("usage: openpixel-mcp [stdio|http [host:port]|add <agent>]"),
+        _ => anyhow::bail!("usage: openpixel-mcp [stdio|http [host:port]|add <agent>|list|remove <agent>]"),
     }
     Ok(())
 }
@@ -573,6 +586,24 @@ fn server_executable() -> Result<String> {
 
 fn cursor_config_path() -> Result<std::path::PathBuf> {
     Ok(config_home()?.join(".cursor/mcp.json"))
+}
+
+fn claude_config_path() -> Result<std::path::PathBuf> {
+    #[cfg(windows)]
+    {
+        return env::var_os("APPDATA")
+            .map(std::path::PathBuf::from)
+            .map(|base| base.join("Claude/claude_desktop_config.json"))
+            .ok_or_else(|| anyhow::anyhow!("APPDATA is not set"));
+    }
+    #[cfg(target_os = "macos")]
+    {
+        Ok(config_home()?.join("Library/Application Support/Claude/claude_desktop_config.json"))
+    }
+    #[cfg(all(not(windows), not(target_os = "macos")))]
+    {
+        Ok(config_home()?.join(".config/Claude/claude_desktop_config.json"))
+    }
 }
 
 fn vscode_config_path() -> Result<std::path::PathBuf> {
@@ -678,6 +709,114 @@ fn add_continue() -> Result<()> {
     Ok(())
 }
 
+fn client_config(client: &str) -> Result<(&'static str, std::path::PathBuf, &'static str)> {
+    match client {
+        "codex" => Ok(("Codex", config_home()?.join(".codex/config.toml"), "toml")),
+        "claude" => Ok(("Claude Desktop", claude_config_path()?, "mcpServers")),
+        "cursor" => Ok(("Cursor", cursor_config_path()?, "mcpServers")),
+        "vscode" | "copilot" => Ok(("VS Code Copilot", vscode_config_path()?, "servers")),
+        "cline" => Ok(("Cline", cline_config_path()?, "mcpServers")),
+        "zed" => Ok(("Zed", zed_config_path()?, "context_servers")),
+        "roo" | "roo-code" => Ok(("Roo Code", env::current_dir()?.join(".roo/mcp.json"), "mcpServers")),
+        "continue" => Ok(("Continue", env::current_dir()?.join(".continue/mcpServers/openpixel.json"), "continue-file")),
+        _ => anyhow::bail!("unknown agent '{client}'. Choose codex, claude, cursor, vscode, cline, roo, zed, or continue."),
+    }
+}
+
+fn list_clients() -> Result<()> {
+    let clients = ["codex", "claude", "cursor", "vscode", "cline", "roo", "zed", "continue"];
+    let mut configured = Vec::new();
+    for id in clients {
+        let (name, path, section) = client_config(id)?;
+        if config_has_openpixel(&path, section)? {
+            configured.push(format!("{name}: {}", path.display()));
+        }
+    }
+    if configured.is_empty() {
+        println!("OpenPixel MCP is not configured for any supported application.");
+    } else {
+        println!("OpenPixel MCP is configured for:");
+        for client in configured {
+            println!("- {client}");
+        }
+    }
+    Ok(())
+}
+
+fn config_has_openpixel(path: &std::path::Path, section: &str) -> Result<bool> {
+    if !path.exists() {
+        return Ok(false);
+    }
+    if section == "toml" {
+        let config = std::fs::read_to_string(path)?;
+        return Ok(config.lines().any(|line| line.trim() == "[mcp_servers.openpixel]"));
+    }
+    if section == "continue-file" {
+        let value: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)
+            .with_context(|| format!("{} is not valid JSON", path.display()))?;
+        return Ok(value.get("mcpServers").and_then(serde_json::Value::as_array)
+            .is_some_and(|servers| servers.iter().any(|server| server.get("name").and_then(serde_json::Value::as_str) == Some("OpenPixel"))));
+    }
+    let value: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)
+        .with_context(|| format!("{} is not valid JSON", path.display()))?;
+    Ok(value.get(section).and_then(serde_json::Value::as_object).is_some_and(|servers| servers.contains_key("openpixel")))
+}
+
+fn remove_client(client: &str) -> Result<()> {
+    let (name, path, section) = client_config(client)?;
+    if !path.exists() {
+        println!("OpenPixel MCP is not configured for {name}.");
+        return Ok(());
+    }
+    if section == "toml" {
+        let config = std::fs::read_to_string(&path)?;
+        let updated = remove_toml_section(&config, "[mcp_servers.openpixel]");
+        if updated == config {
+            println!("OpenPixel MCP is not configured for {name}.");
+            return Ok(());
+        }
+        std::fs::write(&path, updated)?;
+    } else if section == "continue-file" {
+        if !config_has_openpixel(&path, section)? {
+            println!("OpenPixel MCP is not configured for {name}.");
+            return Ok(());
+        }
+        std::fs::remove_file(&path)?;
+    } else {
+        let mut config: serde_json::Value = serde_json::from_slice(&std::fs::read(&path)?)
+            .with_context(|| format!("{} is not valid JSON", path.display()))?;
+        let removed = config.get_mut(section).and_then(serde_json::Value::as_object_mut).is_some_and(|servers| servers.remove("openpixel").is_some());
+        if !removed {
+            println!("OpenPixel MCP is not configured for {name}.");
+            return Ok(());
+        }
+        std::fs::write(&path, format!("{}\n", serde_json::to_string_pretty(&config)?))?;
+    }
+    println!("Removed OpenPixel MCP from {name} ({})", path.display());
+    Ok(())
+}
+
+fn remove_toml_section(config: &str, section_header: &str) -> String {
+    let mut output = String::new();
+    let mut removing = false;
+    for line in config.lines() {
+        if line.trim().starts_with('[') && line.trim().ends_with(']') {
+            let header = line.trim();
+            removing = header == section_header
+                || (section_header == "[mcp_servers.openpixel]"
+                    && header.starts_with("[mcp_servers.openpixel."));
+        }
+        if !removing {
+            output.push_str(line);
+            output.push('\n');
+        }
+    }
+    if !config.ends_with('\n') && !output.is_empty() {
+        output.pop();
+    }
+    output
+}
+
 fn add_codex() -> Result<()> {
     let path = config_home()?.join(".codex").join("config.toml");
     if let Some(parent) = path.parent() { std::fs::create_dir_all(parent)?; }
@@ -700,12 +839,7 @@ fn add_codex() -> Result<()> {
 }
 
 fn add_claude() -> Result<()> {
-    #[cfg(windows)]
-    let path = env::var_os("APPDATA").map(std::path::PathBuf::from).ok_or_else(|| anyhow::anyhow!("APPDATA is not set"))?.join("Claude").join("claude_desktop_config.json");
-    #[cfg(target_os = "macos")]
-    let path = config_home()?.join("Library/Application Support/Claude/claude_desktop_config.json");
-    #[cfg(all(not(windows), not(target_os = "macos")))]
-    let path = config_home()?.join(".config/Claude/claude_desktop_config.json");
+    let path = claude_config_path()?;
     if let Some(parent) = path.parent() { std::fs::create_dir_all(parent)?; }
     let mut config: serde_json::Value = if path.exists() {
         serde_json::from_slice(&std::fs::read(&path).with_context(|| format!("could not read {}", path.display()))?)

@@ -65,6 +65,8 @@ openpixel-mcp add continue
 
 VS Code Copilot için `openpixel-mcp add copilot` takma adını da kullanabilirsiniz. Roo Code ve Continue komutları geçerli proje klasörüne yapılandırma yazar; diğer komutlar uygulamanın kullanıcı yapılandırmasını günceller. Ayrıntılar ve elle yapılandırma örnekleri [MCP kurulum kılavuzunda](apps/mcp/README.md) bulunur.
 
+Yapılandırılmış uygulamaları görmek için `openpixel-mcp list` komutunu kullanın. `openpixel-mcp remove <uygulama>` ilgili uygulamadaki OpenPixel kaydını kaldırır ve diğer MCP sunucularını korur. Roo Code ve Continue için listeleme, komutun çalıştırıldığı proje klasörünü denetler.
+
 Depo geliştirmesi için kök dizinde:
 
 ```sh
