@@ -236,43 +236,22 @@ pub fn render_svg(
             bail!("background must be #RRGGBB or #RRGGBBAA");
         }
     }
-    let title = title.or(doc.name.as_deref()).unwrap_or("Pixel art");
-    let frame = &doc.frames[frame_index];
-    let mut svg = format!("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {} {}\" width=\"{}\" height=\"{}\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"{}\">", doc.width, doc.height, doc.width * scale, doc.height * scale, escape_xml(title));
-    svg.push_str(&format!("<title>{}</title>", escape_xml(title)));
-    if let Some(bg) = background {
-        svg.push_str(&format!(
-            "<rect width=\"{}\" height=\"{}\" fill=\"{}\"/>",
-            doc.width, doc.height, bg
-        ));
+    let options = serde_json::json!({
+        "frameIndex": frame_index,
+        "pixelSize": scale,
+        "background": background,
+        "title": title,
+    });
+    let rendered = openpixel_renderer_core::render_json_native(
+        &serde_json::to_string(doc)?,
+        &options.to_string(),
+    );
+    let result: serde_json::Value = serde_json::from_str(&rendered)?;
+    if let Some(svg) = result.get("svg").and_then(serde_json::Value::as_str) {
+        Ok(svg.to_owned())
+    } else {
+        bail!("renderer failed: {}", result)
     }
-    for layer in &doc.layers {
-        if !layer.visible {
-            continue;
-        }
-        let entry = frame
-            .layers
-            .iter()
-            .find(|item| item.layer_id == layer.id)
-            .context("validated layer missing")?;
-        svg.push_str(&format!(
-            "<g data-layer=\"{}\" opacity=\"{}\">",
-            escape_xml(&layer.id),
-            layer.opacity
-        ));
-        for (y, row) in entry.pixels.iter().enumerate() {
-            for (x, pixel) in row.iter().enumerate() {
-                if let Some(color) = pixel {
-                    svg.push_str(&format!(
-                        "<rect x=\"{x}\" y=\"{y}\" width=\"1\" height=\"1\" fill=\"{color}\"/>"
-                    ));
-                }
-            }
-        }
-        svg.push_str("</g>");
-    }
-    svg.push_str("</svg>");
-    Ok(svg)
 }
 
 /// Encode the document's timed frames as an H.264 MP4 using ffmpeg.
@@ -459,11 +438,4 @@ fn write_rgb_frame(
         }
     }
     Ok(output)
-}
-fn escape_xml(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&apos;")
 }

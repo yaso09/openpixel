@@ -1216,6 +1216,7 @@ name = "openpixel-cli"
 version = "0.4.2"
 dependencies = [
  "anyhow",
+ "openpixel-renderer-core",
  "self_update",
  "serde",
  "serde_json",
