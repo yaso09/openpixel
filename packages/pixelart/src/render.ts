@@ -3,7 +3,7 @@ import "./wasm.js";
 import { PixelArtValidationError } from "./validate.js";
 import type { PixelArtDocument, PixelFrame, RenderOptions } from "./types.js";
 
-type WasmRenderResult = { svg: string } | { error: "validation"; issues: string[] } | { error: "range" | "type" | "options"; message: string };
+type WasmRenderError = { error: "validation"; issues: string[] } | { error: "range" | "type" | "options"; message: string };
 
 function renderWithWasm(document: PixelArtDocument, options: RenderOptions): string {
   const frameIndex = options.frameIndex ?? 0;
@@ -16,17 +16,23 @@ function renderWithWasm(document: PixelArtDocument, options: RenderOptions): str
     throw new TypeError("background must be a #RRGGBB or #RRGGBBAA color");
   }
 
-  let result: WasmRenderResult;
+  let svg: string;
   try {
-    result = JSON.parse(render_json(JSON.stringify(document), JSON.stringify(options))) as WasmRenderResult;
-  } catch {
-    throw new PixelArtValidationError(["document must be an object"]);
+    svg = render_json(JSON.stringify(document), JSON.stringify(options));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    let result: WasmRenderError;
+    try {
+      result = JSON.parse(message) as WasmRenderError;
+    } catch {
+      throw new PixelArtValidationError(["document must be an object"]);
+    }
+    if (result.error === "validation") throw new PixelArtValidationError(result.issues);
+    if (result.error === "range") throw new RangeError(result.message);
+    if (result.error === "type") throw new TypeError(result.message);
+    throw new TypeError(result.message);
   }
-  if ("svg" in result) return result.svg;
-  if (result.error === "validation") throw new PixelArtValidationError(result.issues);
-  if (result.error === "range") throw new RangeError(result.message);
-  if (result.error === "type") throw new TypeError(result.message);
-  throw new TypeError(result.message);
+  return svg;
 }
 
 export function renderFrameToSvg(document: PixelArtDocument, options: RenderOptions = {}): string {

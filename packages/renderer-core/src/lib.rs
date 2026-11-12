@@ -212,36 +212,36 @@ fn validation_issues(value: &Value) -> Vec<String> {
     issues
 }
 
-fn render(document_json: &str, options_json: &str) -> Value {
+fn render(document_json: &str, options_json: &str) -> Result<String, Value> {
     let value: Value = match serde_json::from_str(document_json) {
         Ok(value) => value,
-        Err(_) => return json!({"error": "validation", "issues": ["document must be an object"]}),
+        Err(_) => return Err(json!({"error": "validation", "issues": ["document must be an object"]})),
     };
     let issues = validation_issues(&value);
     if !issues.is_empty() {
-        return json!({"error": "validation", "issues": issues});
+        return Err(json!({"error": "validation", "issues": issues}));
     }
     let document: Document = match serde_json::from_value(value) {
         Ok(document) => document,
         Err(_) => {
-            return json!({"error": "validation", "issues": ["document contains invalid fields"]})
+            return Err(json!({"error": "validation", "issues": ["document contains invalid fields"]}))
         }
     };
     let options: Options = match serde_json::from_str(options_json) {
         Ok(options) => options,
-        Err(_) => return json!({"error": "options", "message": "render options are invalid"}),
+        Err(_) => return Err(json!({"error": "options", "message": "render options are invalid"})),
     };
     let frame_index = options.frame_index.unwrap_or(0);
     if frame_index >= document.frames.len() {
-        return json!({"error": "range", "message": format!("frameIndex must be between 0 and {}", document.frames.len() - 1)});
+        return Err(json!({"error": "range", "message": format!("frameIndex must be between 0 and {}", document.frames.len() - 1)}));
     }
     let scale = options.pixel_size.unwrap_or(1.0);
     if scale <= 0.0 || !scale.is_finite() || scale.fract() != 0.0 {
-        return json!({"error": "range", "message": "pixelSize must be a positive number"});
+        return Err(json!({"error": "range", "message": "pixelSize must be a positive number"}));
     }
     if let Some(background) = &options.background {
         if !background.is_empty() && !valid_color(background) {
-            return json!({"error": "type", "message": "background must be a #RRGGBB or #RRGGBBAA color"});
+            return Err(json!({"error": "type", "message": "background must be a #RRGGBB or #RRGGBBAA color"}));
         }
     }
 
@@ -318,14 +318,19 @@ fn render(document_json: &str, options_json: &str) -> Value {
         &document.layers[0].name,
         frame.duration_ms,
     );
-    json!({"svg": parts.join("")})
+    Ok(parts.join(""))
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-pub fn render_json(document_json: &str, options_json: &str) -> String {
-    render(document_json, options_json).to_string()
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn render_json(document_json: &str, options_json: &str) -> Result<String, JsValue> {
+    render(document_json, options_json)
+        .map_err(|error| JsValue::from_str(&error.to_string()))
 }
 
 pub fn render_json_native(document_json: &str, options_json: &str) -> String {
-    render(document_json, options_json).to_string()
+    match render(document_json, options_json) {
+        Ok(svg) => json!({"svg": svg}).to_string(),
+        Err(error) => error.to_string(),
+    }
 }
