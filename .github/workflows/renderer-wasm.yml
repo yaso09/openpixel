@@ -1,0 +1,58 @@
+name: Renderer WebAssembly build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "packages/renderer-core/**"
+      - "packages/pixelart/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/renderer-wasm.yml"
+  pull_request:
+    paths:
+      - "packages/renderer-core/**"
+      - "packages/pixelart/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/renderer-wasm.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renderer-wasm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install Rust WebAssembly target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --version 0.15.1 --locked
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Build renderer WebAssembly package
+        run: npm run build
+
+      - name: Check Rust workspace
+        run: cargo check --workspace
