@@ -4,6 +4,16 @@ This file is automatically updated for each release.
 
 ---
 
+## [v0.5.0] - 2026-11-12
+
+## Added
+- Add the Rust/WebAssembly renderer to the TypeScript package and use the shared Rust core for CLI SVG output.
+
+## Improved
+- Return SVG output directly from WebAssembly.
+
+---
+
 ## [v0.4.2] - 2026-11-05
 
 ## Improved
